@@ -31,19 +31,12 @@ export class Rules {
       return true;
     }
 
-    // 3. Special condition: Top card is an 8
-    // If the top card is an 8 (and not yet resolved), the player MUST match the 8's suit
-    // (A Queen is not allowed to beat an 8 according to Section 14: "Главное условие — масть текущей восьмёрки")
-    if (topCard.rank === '8' && activeSuit !== null) {
-      return card.suit === activeSuit;
-    }
-
-    // 4. Queen is universal and beats any normal card
+    // 3. Queen is universal and beats any normal card (including 8)
     if (card.rank === 'Q') {
       return true;
     }
 
-    // 5. Normal match by effective suit or rank
+    // 4. Normal match by effective suit or rank (e.g. 8 beats 8, or matching suit)
     const targetSuit = activeSuit || topCard.suit;
     return card.suit === targetSuit || card.rank === topCard.rank;
   }

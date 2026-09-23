@@ -5,6 +5,7 @@ import { GameStateView } from './game.js';
 export interface ClientToServerEvents {
   'room:create': (data: { nickname: string; avatar?: string }, callback: (response: { success: boolean; roomId?: string; error?: string }) => void) => void;
   'room:join': (data: { roomId: string; nickname: string; avatar?: string }, callback: (response: { success: boolean; error?: string }) => void) => void;
+  'room:quickJoin': (data: { nickname: string; avatar?: string }, callback: (response: { success: boolean; roomId?: string; error?: string }) => void) => void;
   'room:leave': () => void;
   'game:start': (callback?: (response: { success: boolean; error?: string }) => void) => void;
   

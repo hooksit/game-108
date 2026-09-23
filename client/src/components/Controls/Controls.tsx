@@ -89,6 +89,14 @@ export const Controls: React.FC<ControlsProps> = ({
                 }}
               />
             </div>
+            {/* Online Status Dot */}
+            <div
+              className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-black ${
+                myPlayer.isConnected !== false ? 'bg-emerald-400' : 'bg-rose-500'
+              }`}
+              title={myPlayer.isConnected !== false ? 'В сети' : 'Не в сети'}
+            />
+
             {/* "Вы" badge */}
             <div className="absolute -top-1 left-1/2 -translate-x-1/2 px-2 py-0.2 rounded-full bg-amber-500 text-black text-[9px] font-black uppercase tracking-wider shadow">
               Вы

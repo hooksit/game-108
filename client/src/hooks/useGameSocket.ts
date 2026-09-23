@@ -65,6 +65,15 @@ export function useGameSocket() {
     };
   }, []);
 
+  const quickJoin = useCallback((nickname: string, avatar: string = 'player'): Promise<{ success: boolean; roomId?: string; error?: string }> => {
+    return new Promise((resolve) => {
+      if (!socketRef.current) return resolve({ success: false, error: 'Нет связи с сервером' });
+      socketRef.current.emit('room:quickJoin', { nickname, avatar }, (res) => {
+        resolve(res);
+      });
+    });
+  }, []);
+
   const createRoom = useCallback((nickname: string, avatar: string = 'player'): Promise<{ success: boolean; roomId?: string; error?: string }> => {
     return new Promise((resolve) => {
       if (!socketRef.current) return resolve({ success: false, error: 'Нет связи с сервером' });
@@ -187,6 +196,7 @@ export function useGameSocket() {
     messages,
     errorMessage,
     notice,
+    quickJoin,
     createRoom,
     joinRoom,
     startGame,

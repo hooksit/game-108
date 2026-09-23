@@ -35,7 +35,19 @@ export function registerSocketHandlers(
     broadcastSessionState(session);
   });
 
-  // 2. Join Room
+  // 2. Quick Join (Common lobby without code)
+  socket.on('room:quickJoin', ({ nickname, avatar }, callback) => {
+    const cleanNick = (nickname || 'Игрок').trim().slice(0, 16);
+    const { roomId, session } = roomManager.quickJoin(socket.id, cleanNick, avatar || 'player');
+
+    socket.join(roomId);
+    socket.join(socket.id);
+
+    callback({ success: true, roomId });
+    broadcastSessionState(session);
+  });
+
+  // 3. Join Room by code (backward compatibility)
   socket.on('room:join', ({ roomId, nickname, avatar }, callback) => {
     const cleanNick = (nickname || 'Игрок').trim().slice(0, 16);
     const res = roomManager.joinRoom(roomId, socket.id, cleanNick, avatar || 'player');
@@ -229,8 +241,19 @@ export function registerSocketHandlers(
 
   // 11. Disconnect
   socket.on('disconnect', () => {
+    const existingSession = roomManager.getSessionByPlayerId(socket.id);
+    const player = existingSession?.players.find(p => p.id === socket.id);
+    const nick = player?.nickname || 'Игрок';
+    const isPlaying = existingSession && existingSession.phase !== 'LOBBY';
+
     const { session } = roomManager.leaveRoom(socket.id);
     if (session) {
+      if (isPlaying) {
+        io.to(session.id).emit('action:notice', {
+          text: `${nick} потерял связь и выбыл`,
+          type: 'special'
+        });
+      }
       broadcastSessionState(session);
     }
   });

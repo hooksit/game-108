@@ -54,7 +54,7 @@ export const DiscardZone: React.FC<DiscardZoneProps> = ({
                 <CardView
                   card={card}
                   size="md"
-                  className={isTop ? 'ring-2 ring-amber-300/40 shadow-xl' : 'shadow-md'}
+                  className={isTop ? 'shadow-2xl' : 'shadow-md'}
                 />
               </div>
             );

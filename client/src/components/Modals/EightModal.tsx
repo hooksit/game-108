@@ -28,10 +28,14 @@ export const EightModal: React.FC<EightModalProps> = ({
 
   const isRed = activeSuit === 'HEARTS' || activeSuit === 'DIAMONDS';
 
-  // Cards eligible for play: matches 8's activeSuit or is another 8
+  // Cards eligible for play: matches 8's activeSuit, another 8, or any Queen
   const eligibleCards = (phase === 'EIGHT_SELECT' ? hand : hiddenDrawCards).filter(
-    (c) => c.suit === activeSuit || c.rank === '8'
+    (c) => c.suit === activeSuit || c.rank === '8' || c.rank === 'Q'
   );
+
+  const hasEligibleCard =
+    hand.some((c) => c.suit === activeSuit || c.rank === '8' || c.rank === 'Q') ||
+    hiddenDrawCards.some((c) => c.suit === activeSuit || c.rank === '8' || c.rank === 'Q');
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
@@ -50,8 +54,8 @@ export const EightModal: React.FC<EightModalProps> = ({
 
         <p className="text-xs text-white/70 mb-4 max-w-sm">
           {phase === 'EIGHT_DRAW'
-            ? `Нужна масть ${activeSuit ? SUIT_NAMES[activeSuit] : ''}. Вытягивайте карты, пока не решите остановиться (соперники не видят ваши карты).`
-            : 'Выберите любую подходящую карту из накопленных, чтобы сделать ход.'
+            ? `Нужна масть ${activeSuit ? SUIT_NAMES[activeSuit] : ''}, любая 8 или Дама. Тяните карты, пока не попадётся подходящая.`
+            : 'Выберите подходящую карту, чтобы перебить восьмёрку.'
           }
         </p>
 
@@ -68,7 +72,7 @@ export const EightModal: React.FC<EightModalProps> = ({
             {phase === 'EIGHT_DRAW' ? (
               hiddenDrawCards.length > 0 ? (
                 hiddenDrawCards.map((c) => {
-                  const fits = c.suit === activeSuit || c.rank === '8';
+                  const fits = c.suit === activeSuit || c.rank === '8' || c.rank === 'Q';
                   return (
                     <div key={c.id} className="relative">
                       <CardView card={c} size="sm" />
@@ -114,11 +118,18 @@ export const EightModal: React.FC<EightModalProps> = ({
 
               <button
                 onClick={onStop}
-                disabled={hiddenDrawCards.length === 0}
-                className="flex-1 py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 active:scale-95 text-amber-200 font-bold text-sm flex items-center justify-center gap-2 border border-white/10 transition-all disabled:opacity-40"
+                disabled={!hasEligibleCard}
+                className={`
+                  flex-1 py-3.5 rounded-2xl font-bold text-sm flex items-center justify-center gap-2 border transition-all
+                  ${hasEligibleCard
+                    ? 'bg-emerald-600/80 hover:bg-emerald-500/90 text-white border-emerald-400/50 shadow-lg active:scale-95'
+                    : 'bg-white/5 text-white/30 border-white/5 cursor-not-allowed'
+                  }
+                `}
+                title={hasEligibleCard ? 'Завершить добор и сыграть карту' : 'Тяните карты, пока не попадется подходящая'}
               >
                 <Hand className="w-4 h-4" />
-                Остановиться
+                {hasEligibleCard ? 'Выбрать карту' : 'Тяните карту...'}
               </button>
             </>
           ) : (

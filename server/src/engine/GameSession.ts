@@ -86,9 +86,17 @@ export class GameSession {
         p.isHost = i === 0;
       });
     } else {
-      this.players[idx].isConnected = false;
-      this.players[idx].isActive = false;
-      this.players[idx].isEliminated = true;
+      const disconnectedPlayer = this.players[idx];
+      disconnectedPlayer.isConnected = false;
+      disconnectedPlayer.isActive = false;
+      disconnectedPlayer.isEliminated = true;
+      this.lastActionMessage = `${disconnectedPlayer.nickname} потерял связь и выбыл из игры.`;
+
+      // If it was this player's turn, advance turn to the next active player
+      if (this.currentTurnIndex === disconnectedPlayer.seatIndex) {
+        this.advanceTurn();
+      }
+
       this.checkGameCompletion();
     }
   }
@@ -437,13 +445,17 @@ export class GameSession {
       player.cardCount = player.hand.length;
     }
 
-    // Check if player has any matching card to play
+    // Check if player has any matching card to play (8, matching suit, or Queen)
     const topCard = this.getTopCard();
     const playable = Rules.getPlayableCards(player.hand, topCard, this.activeSuit, this.penalty);
 
     if (playable.length === 0) {
-      // In extreme case if deck ran out and no cards fit
-      this.lastActionMessage = `${player.nickname} не нашел подходящей карты.`;
+      // If deck still has cards, player must continue drawing until a playable card appears
+      if (this.deck.remaining() > 0) {
+        return { success: false, error: 'В колоде еще есть карты. Необходимо тянуть, пока не попадется подходящая карта' };
+      }
+      // If deck ran out completely and still no cards fit
+      this.lastActionMessage = `Колода пуста: ${player.nickname} не нашел подходящей карты и пропускает ход.`;
       this.phase = 'PLAYER_TURN';
       this.advanceTurn();
       return { success: true };
@@ -466,8 +478,8 @@ export class GameSession {
     }
 
     const card = player.hand[cardIndex];
-    if (card.suit !== this.activeSuit && card.rank !== '8') {
-      return { success: false, error: 'Карта должна соответствовать масти восьмерки' };
+    if (card.suit !== this.activeSuit && card.rank !== '8' && card.rank !== 'Q') {
+      return { success: false, error: 'Карта должна соответствовать масти восьмерки, быть другой восьмеркой или дамой' };
     }
 
     // Play card

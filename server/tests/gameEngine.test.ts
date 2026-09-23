@@ -370,4 +370,32 @@ describe('Game 108 Engine Comprehensive Test Suite', () => {
     // Turn passed to p2
     expect(session.currentTurnIndex).toBe(1);
   });
+
+  it('19. Countering 8 directly: another 8 of different suit or Queen is valid', () => {
+    session.startMatch();
+    session.phase = 'PLAYER_TURN';
+    session.currentTurnIndex = 0;
+    session.discardPile = [{ id: 'DIAMONDS_8', suit: 'DIAMONDS', rank: '8' }];
+    session.activeSuit = 'DIAMONDS';
+    session.players[0].hand = [
+      { id: 'HEARTS_8', suit: 'HEARTS', rank: '8' },
+      { id: 'CLUBS_Q', suit: 'CLUBS', rank: 'Q' },
+      { id: 'SPADES_10', suit: 'SPADES', rank: '10' }
+    ];
+
+    // Playing another 8 of different suit (HEARTS_8 on DIAMONDS_8) is allowed!
+    const res8 = session.playCard('p1', 'HEARTS_8');
+    expect(res8.success).toBe(true);
+    expect(session.activeSuit).toBe('HEARTS');
+
+    // Next turn on HEARTS_8 with a Queen:
+    session.currentTurnIndex = 1;
+    session.players[1].hand = [
+      { id: 'SPADES_Q', suit: 'SPADES', rank: 'Q' },
+      { id: 'CLUBS_9', suit: 'CLUBS', rank: '9' }
+    ];
+    const resQ = session.playCard('p2', 'SPADES_Q');
+    expect(resQ.success).toBe(true);
+    expect(session.phase).toBe('QUEEN_SUIT_SELECTION');
+  });
 });

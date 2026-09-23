@@ -23,15 +23,15 @@ export const PlayerSeat: React.FC<PlayerSeatProps> = ({
     const cards = Array.from({ length: count });
 
     return (
-      <div className="absolute -top-7 left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none w-24 h-10">
+      <div className="absolute -top-9 sm:-top-10 left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none w-28 h-12">
         {cards.map((_, i) => {
           const total = cards.length;
           const angle = (i - (total - 1) / 2) * 8;
-          const offsetX = (i - (total - 1) / 2) * 5;
+          const offsetX = (i - (total - 1) / 2) * 6;
           return (
             <div
               key={i}
-              className="absolute w-5 h-7 sm:w-6 sm:h-8 rounded shadow overflow-hidden transition-transform duration-300"
+              className="absolute w-7 h-10 sm:w-8 sm:h-12 rounded shadow-md overflow-hidden transition-transform duration-300"
               style={{
                 transform: `translateX(${offsetX}px) rotate(${angle}deg)`,
                 zIndex: i
@@ -47,7 +47,7 @@ export const PlayerSeat: React.FC<PlayerSeatProps> = ({
           );
         })}
         {/* Card Count Bubble */}
-        <div className="absolute -right-2 -top-1 w-5 h-5 rounded-full bg-[#1b1714] border border-amber-400 text-amber-200 text-[10px] font-bold flex items-center justify-center shadow-lg z-20">
+        <div className="absolute -right-3 -top-1 w-5 h-5 rounded-full bg-[#1b1714] border border-amber-400 text-amber-200 text-[10px] font-bold flex items-center justify-center shadow-lg z-20">
           {player.cardCount}
         </div>
       </div>
@@ -65,7 +65,7 @@ export const PlayerSeat: React.FC<PlayerSeatProps> = ({
           className={`
             w-11 h-11 sm:w-12 sm:h-12 rounded-full overflow-hidden transition-all duration-300
             ${isCurrentTurn ? 'gold-active-ring scale-105' : 'shadow-lg border-2 border-amber-500/30'}
-            ${player.isEliminated ? 'filter grayscale brightness-50' : ''}
+            ${player.isEliminated || player.isConnected === false ? 'filter grayscale brightness-50' : ''}
           `}
         >
           <img
@@ -77,6 +77,14 @@ export const PlayerSeat: React.FC<PlayerSeatProps> = ({
             }}
           />
         </div>
+
+        {/* Online Status Dot */}
+        <div
+          className={`absolute bottom-0 right-0 w-3 h-3 rounded-full border-2 border-black ${
+            player.isConnected !== false ? 'bg-emerald-400' : 'bg-rose-500'
+          }`}
+          title={player.isConnected !== false ? 'В сети' : 'Не в сети'}
+        />
 
         {/* Local user "Вы" badge tag */}
         {isLocalUser && (
@@ -92,7 +100,7 @@ export const PlayerSeat: React.FC<PlayerSeatProps> = ({
           {player.nickname}
         </span>
         <span className={`text-[10px] font-bold ${player.score < 0 ? 'text-emerald-400' : 'text-amber-300'} leading-none mt-0.5`}>
-          {player.isEliminated ? 'ВЫБЫЛ' : `${player.score} оч.`}
+          {player.isConnected === false ? 'ОФЛАЙН' : player.isEliminated ? 'ВЫБЫЛ' : `${player.score} оч.`}
         </span>
       </div>
     </div>

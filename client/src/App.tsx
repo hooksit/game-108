@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { MessageSquare } from 'lucide-react';
 import { useGameSocket } from './hooks/useGameSocket';
 import { useSound } from './hooks/useSound';
 import { TopBar } from './components/TopBar/TopBar';
@@ -16,8 +17,7 @@ export default function App() {
     messages,
     errorMessage,
     notice,
-    createRoom,
-    joinRoom,
+    quickJoin,
     startGame,
     playCard,
     drawCard,
@@ -34,6 +34,9 @@ export default function App() {
 
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [chatToast, setChatToast] = useState<{ nickname: string; avatar?: string; message: string } | null>(null);
+  const chatToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevMessageCount = useRef<number>(0);
 
   // Audio reactivity refs
   const prevTopCardId = useRef<string | null>(null);
@@ -68,9 +71,34 @@ export default function App() {
     prevPenalty.current = gameState.penalty.amount;
   }, [gameState, playSound]);
 
+  // Listen for new chat messages to show 5-second disappearing toast
+  useEffect(() => {
+    if (messages.length > prevMessageCount.current) {
+      const latestMsg = messages[messages.length - 1];
+      prevMessageCount.current = messages.length;
+      if (latestMsg && latestMsg.senderId !== gameState?.myPlayerId && !isChatOpen) {
+        setUnreadCount((c) => c + 1);
+        const sender = gameState?.players.find((p) => p.id === latestMsg.senderId);
+        setChatToast({
+          nickname: latestMsg.nickname,
+          avatar: sender?.avatar || 'player',
+          message: latestMsg.message
+        });
+
+        if (chatToastTimer.current) {
+          clearTimeout(chatToastTimer.current);
+        }
+        chatToastTimer.current = setTimeout(() => {
+          setChatToast(null);
+        }, 5000);
+      }
+    }
+  }, [messages, gameState?.myPlayerId, gameState?.players, isChatOpen]);
+
   const handleOpenChat = () => {
     setIsChatOpen(true);
     setUnreadCount(0);
+    setChatToast(null);
   };
 
   const handleSendMessage = (text: string) => {
@@ -132,6 +160,30 @@ export default function App() {
         </div>
       )}
 
+      {/* Floating Chat Message Toast (auto-dismiss 5s) */}
+      {chatToast && (
+        <div
+          onClick={handleOpenChat}
+          className="fixed top-14 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-2 rounded-2xl bg-black/90 border border-amber-400 text-white shadow-2xl backdrop-blur-md cursor-pointer hover:bg-black transition-all animate-bounce"
+          title="Нажмите чтобы открыть чат"
+        >
+          <img
+            src={`/assets/avatars/${chatToast.avatar || 'player'}.png`}
+            alt={chatToast.nickname}
+            className="w-7 h-7 rounded-full border border-amber-400/60 object-cover shrink-0"
+          />
+          <div className="flex flex-col min-w-0 max-w-[200px] sm:max-w-xs text-left">
+            <span className="text-[10px] font-bold text-amber-300 truncate">
+              {chatToast.nickname}
+            </span>
+            <span className="text-xs text-white/95 truncate">
+              {chatToast.message}
+            </span>
+          </div>
+          <MessageSquare className="w-4 h-4 text-amber-400 shrink-0 ml-1" />
+        </div>
+      )}
+
       {/* Floating Error Notification */}
       {errorMessage && (
         <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-rose-900/90 border border-rose-500 text-white text-xs font-bold shadow-2xl backdrop-blur-md animate-bounce">
@@ -153,8 +205,7 @@ export default function App() {
           players={gameState?.players || []}
           isHost={isHost}
           myPlayerId={gameState?.myPlayerId || ''}
-          onCreateRoom={(nick, av) => createRoom(nick, av)}
-          onJoinRoom={(code, nick, av) => joinRoom(code, nick, av)}
+          onQuickJoin={(nick, av) => quickJoin(nick, av)}
           onStartGame={startGame}
         />
       )}

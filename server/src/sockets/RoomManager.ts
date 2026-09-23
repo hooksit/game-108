@@ -58,6 +58,42 @@ export class RoomManager {
     return { success: true, session };
   }
 
+  public quickJoin(playerId: string, nickname: string, avatar: string = 'player'): { roomId: string; session: GameSession } {
+    // 1. Check if there is an active game where a player with same nickname disconnected (allow reconnect)
+    for (const [roomId, session] of this.rooms.entries()) {
+      if (session.phase !== 'LOBBY') {
+        const disconnected = session.players.find(p => p.nickname === nickname && !p.isConnected);
+        if (disconnected) {
+          disconnected.id = playerId;
+          disconnected.isConnected = true;
+          disconnected.isActive = true;
+          disconnected.avatar = avatar;
+          this.playerRoomMap.set(playerId, roomId);
+          return { roomId, session };
+        }
+      }
+    }
+
+    // 2. Check if there is an existing room in LOBBY with available seats
+    for (const [roomId, session] of this.rooms.entries()) {
+      if (session.phase === 'LOBBY' && session.players.length < 6) {
+        const existing = session.players.find(p => p.id === playerId);
+        if (existing) {
+          this.playerRoomMap.set(playerId, roomId);
+          return { roomId, session };
+        }
+        const added = session.addPlayer(playerId, nickname, avatar);
+        if (added) {
+          this.playerRoomMap.set(playerId, roomId);
+          return { roomId, session };
+        }
+      }
+    }
+
+    // 3. Otherwise create a new room as host
+    return this.createRoom(playerId, nickname, avatar);
+  }
+
   public leaveRoom(playerId: string): { roomId?: string; session?: GameSession } {
     const roomId = this.playerRoomMap.get(playerId);
     if (!roomId) return {};

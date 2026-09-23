@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, Signal, Copy, Check, Volume2, VolumeX } from 'lucide-react';
+import { Menu, Signal, Volume2, VolumeX } from 'lucide-react';
 
 interface TopBarProps {
   roundNumber: number;
@@ -11,13 +11,11 @@ interface TopBarProps {
 
 export const TopBar: React.FC<TopBarProps> = ({
   roundNumber,
-  roomId,
   isMuted = false,
   onToggleSound,
   onOpenMenu
 }) => {
   const [time, setTime] = useState('');
-  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     const updateTime = () => {
@@ -30,13 +28,6 @@ export const TopBar: React.FC<TopBarProps> = ({
     const interval = setInterval(updateTime, 1000);
     return () => clearInterval(interval);
   }, []);
-
-  const copyRoomId = () => {
-    if (!roomId) return;
-    navigator.clipboard.writeText(roomId);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  };
 
   return (
     <header className="relative z-30 flex items-center justify-between w-full px-4 py-2 text-white">
@@ -58,18 +49,12 @@ export const TopBar: React.FC<TopBarProps> = ({
         </div>
       </div>
 
-      {/* Center: Room Code Badge */}
-      {roomId && (
-        <button
-          onClick={copyRoomId}
-          className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/40 border border-amber-500/30 text-amber-200 text-xs font-semibold backdrop-blur-md hover:bg-black/60 transition-all active:scale-95"
-          title="Нажмите чтобы скопировать код"
-        >
-          <span className="text-white/60">Код:</span>
-          <span className="font-mono tracking-widest text-amber-300">{roomId}</span>
-          {copied ? <Check className="w-3 h-3 text-emerald-400" /> : <Copy className="w-3 h-3 text-white/50" />}
-        </button>
-      )}
+      {/* Center: Game Title Badge */}
+      <div className="flex items-center gap-1.5 px-3.5 py-1 rounded-full bg-black/40 border border-amber-500/20 text-amber-200 text-xs font-semibold backdrop-blur-md">
+        <span className="font-black text-amber-300 tracking-wider">108</span>
+        <span className="text-white/40">·</span>
+        <span className="text-[11px] text-amber-200/80">Онлайн</span>
+      </div>
 
       {/* Right: Sound toggle, Clock & Signal */}
       <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-black/40 border border-white/10 backdrop-blur-md">
