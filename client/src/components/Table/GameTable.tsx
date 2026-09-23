@@ -18,7 +18,7 @@ interface GameTableProps {
 const getOpponentPositionClass = (opponentIndex: number, totalOpponents: number): string => {
   switch (totalOpponents) {
     case 1: // 2 players total: Top center
-      return 'top-4 sm:top-6 left-1/2 -translate-x-1/2';
+      return 'top-8 sm:top-10 left-1/2 -translate-x-1/2';
 
     case 2: // 3 players total: Upper Left & Upper Right (completely clear of deck on right)
       return opponentIndex === 0
@@ -27,20 +27,20 @@ const getOpponentPositionClass = (opponentIndex: number, totalOpponents: number)
 
     case 3: // 4 players total: Mid Left, Top Center, Upper Right
       if (opponentIndex === 0) return 'top-[34%] left-3 sm:left-5 -translate-y-1/2';
-      if (opponentIndex === 1) return 'top-4 sm:top-6 left-1/2 -translate-x-1/2';
+      if (opponentIndex === 1) return 'top-8 sm:top-10 left-1/2 -translate-x-1/2';
       return 'top-[22%] right-3 sm:right-5 -translate-y-1/2';
 
     case 4: // 5 players total: Lower Left, Upper Left, Top Center, Upper Right
       if (opponentIndex === 0) return 'top-[44%] left-2 sm:left-4 -translate-y-1/2';
       if (opponentIndex === 1) return 'top-[18%] left-3 sm:left-5 -translate-y-1/2';
-      if (opponentIndex === 2) return 'top-4 sm:top-6 left-1/2 -translate-x-1/2';
+      if (opponentIndex === 2) return 'top-8 sm:top-10 left-1/2 -translate-x-1/2';
       return 'top-[20%] right-3 sm:right-5 -translate-y-1/2';
 
     case 5: // 6 players total: Lower Left, Upper Left, Top Center, Upper Right, Mid Right
     default:
       if (opponentIndex === 0) return 'top-[48%] left-2 sm:left-3 -translate-y-1/2';
       if (opponentIndex === 1) return 'top-[22%] left-3 sm:left-4 -translate-y-1/2';
-      if (opponentIndex === 2) return 'top-4 sm:top-6 left-1/2 -translate-x-1/2';
+      if (opponentIndex === 2) return 'top-8 sm:top-10 left-1/2 -translate-x-1/2';
       if (opponentIndex === 3) return 'top-[18%] right-3 sm:right-4 -translate-y-1/2';
       return 'top-[38%] right-2 sm:right-3 -translate-y-1/2';
   }

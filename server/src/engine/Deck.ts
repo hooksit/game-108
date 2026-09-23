@@ -69,6 +69,14 @@ export class Deck {
     return this.cards.length;
   }
 
+  public addCards(cards: Card[], shuffle = true): void {
+    if (!cards || cards.length === 0) return;
+    this.cards.push(...cards);
+    if (shuffle) {
+      this.shuffle();
+    }
+  }
+
   public setCards(cards: Card[]): void {
     this.cards = [...cards];
   }

@@ -71,29 +71,32 @@ export default function App() {
     prevPenalty.current = gameState.penalty.amount;
   }, [gameState, playSound]);
 
-  // Listen for new chat messages to show 5-second disappearing toast
+  // Listen for new chat messages to show 5-second disappearing toast and play sound
   useEffect(() => {
     if (messages.length > prevMessageCount.current) {
       const latestMsg = messages[messages.length - 1];
       prevMessageCount.current = messages.length;
-      if (latestMsg && latestMsg.senderId !== gameState?.myPlayerId && !isChatOpen) {
-        setUnreadCount((c) => c + 1);
-        const sender = gameState?.players.find((p) => p.id === latestMsg.senderId);
-        setChatToast({
-          nickname: latestMsg.nickname,
-          avatar: sender?.avatar || 'player',
-          message: latestMsg.message
-        });
+      if (latestMsg && latestMsg.senderId !== gameState?.myPlayerId) {
+        playSound('message');
+        if (!isChatOpen) {
+          setUnreadCount((c) => c + 1);
+          const sender = gameState?.players.find((p) => p.id === latestMsg.senderId);
+          setChatToast({
+            nickname: latestMsg.nickname,
+            avatar: sender?.avatar || 'player',
+            message: latestMsg.message
+          });
 
-        if (chatToastTimer.current) {
-          clearTimeout(chatToastTimer.current);
+          if (chatToastTimer.current) {
+            clearTimeout(chatToastTimer.current);
+          }
+          chatToastTimer.current = setTimeout(() => {
+            setChatToast(null);
+          }, 5000);
         }
-        chatToastTimer.current = setTimeout(() => {
-          setChatToast(null);
-        }, 5000);
       }
     }
-  }, [messages, gameState?.myPlayerId, gameState?.players, isChatOpen]);
+  }, [messages, gameState?.myPlayerId, gameState?.players, isChatOpen, playSound]);
 
   const handleOpenChat = () => {
     setIsChatOpen(true);
@@ -136,10 +139,10 @@ export default function App() {
 
   return (
     <div className="relative w-screen h-[100dvh] flex flex-col bg-[#110c09] overflow-hidden select-none">
-      {/* Floating Sound Toggle Button */}
+      {/* Floating Sound Toggle Button (Left side) */}
       <button
         onClick={toggleMute}
-        className="fixed top-3.5 right-3.5 z-40 p-2.5 rounded-2xl bg-black/50 border border-white/10 backdrop-blur-md text-amber-200 hover:text-amber-100 hover:bg-black/70 active:scale-95 transition-all shadow-lg"
+        className="fixed top-3.5 left-3.5 z-40 p-2.5 rounded-2xl bg-black/50 border border-white/10 backdrop-blur-md text-amber-200 hover:text-amber-100 hover:bg-black/70 active:scale-95 transition-all shadow-lg"
         title={isMuted ? 'Включить звук' : 'Выключить звук'}
       >
         {isMuted ? <VolumeX className="w-4 h-4 text-white/40" /> : <Volume2 className="w-4 h-4 text-amber-300" />}
@@ -161,11 +164,11 @@ export default function App() {
         </div>
       )}
 
-      {/* Floating Chat Message Toast (semi-transparent, auto-dismiss 5s, no icon) */}
+      {/* Floating Chat Message Toast (semi-transparent, auto-dismiss 5s, no icon, responsive width & overflow safe) */}
       {chatToast && (
         <div
           onClick={handleOpenChat}
-          className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-black/60 border border-amber-500/40 text-white shadow-2xl backdrop-blur-md cursor-pointer hover:bg-black/75 transition-all animate-bounce"
+          className="fixed top-3.5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-black/60 border border-amber-500/40 text-white shadow-2xl backdrop-blur-md cursor-pointer hover:bg-black/75 transition-all w-[90%] max-w-[280px] sm:max-w-xs animate-bounce"
           title="Нажмите чтобы открыть чат"
         >
           <img
@@ -173,7 +176,7 @@ export default function App() {
             alt={chatToast.nickname}
             className="w-7 h-7 rounded-full border border-amber-400/60 object-cover shrink-0"
           />
-          <div className="flex flex-col min-w-0 max-w-[200px] sm:max-w-xs text-left">
+          <div className="flex flex-col min-w-0 flex-1 text-left overflow-hidden">
             <span className="text-[10px] font-bold text-amber-300 truncate">
               {chatToast.nickname}
             </span>

@@ -112,9 +112,29 @@ def gen_pass():
         samples.append(tone * env * 0.4)
     return samples
 
+# 6. message.wav: Pleasant gentle chime for chat messages
+def gen_message():
+    duration = 0.28
+    n_samples = int(duration * SAMPLE_RATE)
+    samples = [0.0] * n_samples
+    notes = [
+        (0.00, 659.25),  # E5
+        (0.08, 987.77)   # B5
+    ]
+    for start_t, freq in notes:
+        start_idx = int(start_t * SAMPLE_RATE)
+        for i in range(start_idx, n_samples):
+            t = (i - start_idx) / SAMPLE_RATE
+            env = math.exp(-t * 18.0)
+            bell = math.sin(2 * math.pi * freq * t) * 0.65 + math.sin(2 * math.pi * freq * 2 * t) * 0.2
+            samples[i] += bell * env * 0.35
+    return samples
+
 write_wav('client/public/assets/sounds/deal.wav', gen_deal())
 write_wav('client/public/assets/sounds/play.wav', gen_play())
 write_wav('client/public/assets/sounds/penalty.wav', gen_penalty())
 write_wav('client/public/assets/sounds/victory.wav', gen_victory())
 write_wav('client/public/assets/sounds/pass.wav', gen_pass())
+write_wav('client/public/assets/sounds/message.wav', gen_message())
 print("All realistic sound effects generated successfully.")
+

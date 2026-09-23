@@ -395,4 +395,57 @@ describe('Game 108 Engine Comprehensive Test Suite', () => {
     expect(resQ.success).toBe(true);
     expect(session.phase).toBe('QUEEN_SUIT_SELECTION');
   });
+
+  it('20. Player disconnect during game: hand and hidden cards are returned to deck', () => {
+    session.startMatch();
+    const initialDeckCount = session.deck.remaining();
+    const p2CardCount = session.players[1].hand.length;
+
+    session.removePlayer('p2');
+    expect(session.players[1].isConnected).toBe(false);
+    expect(session.players[1].isEliminated).toBe(true);
+    expect(session.players[1].hand.length).toBe(0);
+    // Cards returned to deck
+    expect(session.deck.remaining()).toBe(initialDeckCount + p2CardCount);
+  });
+
+  it('21. Winning with Spades King (♠K): next player draws 5 cards and scores them', () => {
+    session.startMatch();
+    session.phase = 'PLAYER_TURN';
+    session.currentTurnIndex = 0;
+    session.discardPile = [{ id: 'SPADES_9', suit: 'SPADES', rank: '9' }];
+    session.activeSuit = 'SPADES';
+    session.players[0].hand = [{ id: 'SPADES_K', suit: 'SPADES', rank: 'K' }];
+
+    // p2 has 1 card worth 10 points
+    session.players[1].hand = [{ id: 'HEARTS_10', suit: 'HEARTS', rank: '10' }];
+    session.players[1].score = 0;
+
+    const res = session.playCard('p1', 'SPADES_K');
+    expect(res.success).toBe(true);
+    expect(session.phase).toBe('ROUND_END');
+    // p2 should have received 5 extra cards from the deck (total 6 cards)
+    expect(session.players[1].hand.length).toBe(6);
+    // Score should be 10 + sum of 5 drawn cards (> 10)
+    expect(session.players[1].score).toBeGreaterThan(10);
+  });
+
+  it('22. Winning with 6 or 7: next player draws 1 or 2 cards and scores them', () => {
+    session.startMatch();
+    session.phase = 'PLAYER_TURN';
+    session.currentTurnIndex = 0;
+    session.discardPile = [{ id: 'CLUBS_9', suit: 'CLUBS', rank: '9' }];
+    session.activeSuit = 'CLUBS';
+    session.players[0].hand = [{ id: 'CLUBS_6', suit: 'CLUBS', rank: '6' }];
+
+    session.players[1].hand = [{ id: 'DIAMONDS_J', suit: 'DIAMONDS', rank: 'J' }]; // 2 points
+    session.players[1].score = 0;
+
+    const res = session.playCard('p1', 'CLUBS_6');
+    expect(res.success).toBe(true);
+    expect(session.phase).toBe('ROUND_END');
+    // p2 gets 1 extra card (total 2 cards)
+    expect(session.players[1].hand.length).toBe(2);
+    expect(session.players[1].score).toBeGreaterThan(2);
+  });
 });

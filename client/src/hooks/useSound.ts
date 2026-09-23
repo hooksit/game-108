@@ -1,6 +1,6 @@
 import { useState, useCallback, useRef } from 'react';
 
-export type SoundType = 'deal' | 'play' | 'penalty' | 'victory' | 'pass';
+export type SoundType = 'deal' | 'play' | 'penalty' | 'victory' | 'pass' | 'message';
 
 export function useSound() {
   const [isMuted, setIsMuted] = useState(() => {

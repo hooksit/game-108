@@ -90,7 +90,18 @@ export class GameSession {
       disconnectedPlayer.isConnected = false;
       disconnectedPlayer.isActive = false;
       disconnectedPlayer.isEliminated = true;
-      this.lastActionMessage = `${disconnectedPlayer.nickname} потерял связь и выбыл из игры.`;
+
+      // Return disconnected player's cards back to the draw deck and shuffle
+      const cardsToReturn: Card[] = [...disconnectedPlayer.hand, ...(disconnectedPlayer.hiddenDrawCards || [])];
+      if (cardsToReturn.length > 0) {
+        this.deck.addCards(cardsToReturn, true);
+        disconnectedPlayer.hand = [];
+        disconnectedPlayer.hiddenDrawCards = [];
+        disconnectedPlayer.cardCount = 0;
+        this.lastActionMessage = `${disconnectedPlayer.nickname} потерял связь: ${cardsToReturn.length} карт возвращены в колоду.`;
+      } else {
+        this.lastActionMessage = `${disconnectedPlayer.nickname} потерял связь и выбыл из игры.`;
+      }
 
       // If it was this player's turn, advance turn to the next active player
       if (this.currentTurnIndex === disconnectedPlayer.seatIndex) {
@@ -545,6 +556,27 @@ export class GameSession {
   private handleRoundVictory(winner: PlayerPrivate, winningCard: Card): void {
     this.phase = 'ROUND_END';
     this.lastWinningCard = winningCard;
+
+    // If winner ended the round with an attack card, draw penalty cards from deck for the next active player
+    let attackPenalty = 0;
+    if (winningCard.suit === 'SPADES' && winningCard.rank === 'K') {
+      attackPenalty = 5;
+    } else if (winningCard.rank === '7') {
+      attackPenalty = Math.max(2, this.penalty.amount);
+    } else if (winningCard.rank === '6') {
+      attackPenalty = Math.max(1, this.penalty.amount);
+    }
+
+    if (attackPenalty > 0) {
+      const victim = this.getPlayerAtNextActiveSeat(winner.seatIndex);
+      if (victim && victim.id !== winner.id) {
+        const extraCards = this.drawFromDeckSafe(attackPenalty);
+        victim.hand.push(...extraCards);
+        victim.cardCount = victim.hand.length;
+        this.lastActionMessage = `${winner.nickname} завершил раунд картой ${winningCard.rank}! ${victim.nickname} получает +${attackPenalty} штрафных карт из колоды.`;
+      }
+    }
+    this.penalty = { type: null, amount: 0 };
 
     // Calculate delta scores
     let winnerBonus = 0;

@@ -21,17 +21,18 @@ export const PlayerSeat: React.FC<PlayerSeatProps> = ({
     if (isLocalUser || player.cardCount === 0 || player.isEliminated) return null;
     const count = Math.min(player.cardCount, 8); // Display up to 8 visual cards in fan
     const cards = Array.from({ length: count });
+    const isTopCenter = positionClass.includes('left-1/2');
 
     return (
-      <div className="absolute -top-9 sm:-top-10 left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none w-28 h-12">
+      <div className={`absolute ${isTopCenter ? '-top-6 sm:-top-7' : '-top-7 sm:-top-8'} left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none w-32 h-14`}>
         {cards.map((_, i) => {
           const total = cards.length;
           const angle = (i - (total - 1) / 2) * 8;
-          const offsetX = (i - (total - 1) / 2) * 6;
+          const offsetX = (i - (total - 1) / 2) * 7;
           return (
             <div
               key={i}
-              className="absolute w-7 h-10 sm:w-8 sm:h-12 rounded shadow-md overflow-hidden transition-transform duration-300"
+              className="absolute w-9 h-13 sm:w-10 sm:h-14 rounded-md shadow-lg overflow-hidden transition-transform duration-300 border border-white/20"
               style={{
                 transform: `translateX(${offsetX}px) rotate(${angle}deg)`,
                 zIndex: i
@@ -47,7 +48,7 @@ export const PlayerSeat: React.FC<PlayerSeatProps> = ({
           );
         })}
         {/* Card Count Bubble */}
-        <div className="absolute -right-3 -top-1 w-5 h-5 rounded-full bg-[#1b1714] border border-amber-400 text-amber-200 text-[10px] font-bold flex items-center justify-center shadow-lg z-20">
+        <div className="absolute -right-2 -top-1 w-5 h-5 rounded-full bg-[#1b1714] border border-amber-400 text-amber-200 text-[11px] font-bold flex items-center justify-center shadow-lg z-20">
           {player.cardCount}
         </div>
       </div>
