@@ -14,15 +14,37 @@ interface GameTableProps {
   unreadChatCount?: number;
 }
 
-// Seat positions around the oval table
-const SEAT_POSITIONS = [
-  'bottom-28 left-1/2 -translate-x-1/2',    // Position 0: Bottom center (Me)
-  'top-[52%] left-3 sm:left-4 -translate-y-1/2',     // Position 1: Bottom Left (Zara)
-  'top-[24%] left-4 sm:left-6 -translate-y-1/2',     // Position 2: Top Left (Murad)
-  'top-14 left-1/2 -translate-x-1/2',      // Position 3: Top Center (Adam)
-  'top-[24%] right-4 sm:right-6 -translate-y-1/2',    // Position 4: Top Right (Ramil)
-  'top-[52%] right-3 sm:right-4 -translate-y-1/2',    // Position 5: Bottom Right (Kamil)
-];
+// Dynamically determine opponent position around the table based on opponent count
+const getOpponentPositionClass = (opponentIndex: number, totalOpponents: number): string => {
+  switch (totalOpponents) {
+    case 1: // 2 players total: Top center
+      return 'top-4 sm:top-6 left-1/2 -translate-x-1/2';
+
+    case 2: // 3 players total: Upper Left & Upper Right (completely clear of deck on right)
+      return opponentIndex === 0
+        ? 'top-[22%] left-3 sm:left-6 -translate-y-1/2'
+        : 'top-[22%] right-3 sm:right-6 -translate-y-1/2';
+
+    case 3: // 4 players total: Mid Left, Top Center, Upper Right
+      if (opponentIndex === 0) return 'top-[34%] left-3 sm:left-5 -translate-y-1/2';
+      if (opponentIndex === 1) return 'top-4 sm:top-6 left-1/2 -translate-x-1/2';
+      return 'top-[22%] right-3 sm:right-5 -translate-y-1/2';
+
+    case 4: // 5 players total: Lower Left, Upper Left, Top Center, Upper Right
+      if (opponentIndex === 0) return 'top-[44%] left-2 sm:left-4 -translate-y-1/2';
+      if (opponentIndex === 1) return 'top-[18%] left-3 sm:left-5 -translate-y-1/2';
+      if (opponentIndex === 2) return 'top-4 sm:top-6 left-1/2 -translate-x-1/2';
+      return 'top-[20%] right-3 sm:right-5 -translate-y-1/2';
+
+    case 5: // 6 players total: Lower Left, Upper Left, Top Center, Upper Right, Mid Right
+    default:
+      if (opponentIndex === 0) return 'top-[48%] left-2 sm:left-3 -translate-y-1/2';
+      if (opponentIndex === 1) return 'top-[22%] left-3 sm:left-4 -translate-y-1/2';
+      if (opponentIndex === 2) return 'top-4 sm:top-6 left-1/2 -translate-x-1/2';
+      if (opponentIndex === 3) return 'top-[18%] right-3 sm:right-4 -translate-y-1/2';
+      return 'top-[38%] right-2 sm:right-3 -translate-y-1/2';
+  }
+};
 
 export const GameTable: React.FC<GameTableProps> = ({
   state,
@@ -35,16 +57,19 @@ export const GameTable: React.FC<GameTableProps> = ({
   const isMyTurn = state.currentTurnPlayerId === state.myPlayerId;
   const currentTurnPlayer = state.players.find((p) => p.id === state.currentTurnPlayerId);
 
-  // Find local player's seatIndex to arrange table clockwise around them
+  // Find local player and opponents
   const myPlayer = state.players.find((p) => p.id === state.myPlayerId);
   const mySeatIndex = myPlayer?.seatIndex ?? 0;
 
-  // Map each player to relative seat position 0..5
-  const getRelativePosition = (seatIndex: number): number => {
-    if (seatIndex === mySeatIndex) return 0;
-    const offset = (seatIndex - mySeatIndex + 6) % 6;
-    return offset;
-  };
+  // Sort opponents clockwise starting from the seat after the local player
+  const opponents = state.players
+    .filter((p) => p.id !== state.myPlayerId)
+    .sort((a, b) => {
+      const total = state.players.length;
+      const diffA = (a.seatIndex - mySeatIndex + total) % total;
+      const diffB = (b.seatIndex - mySeatIndex + total) % total;
+      return diffA - diffB;
+    });
 
   return (
     <div className="relative flex-1 flex flex-col justify-between w-full max-w-md mx-auto overflow-hidden select-none">
@@ -60,50 +85,10 @@ export const GameTable: React.FC<GameTableProps> = ({
         <div className="absolute inset-0 bg-radial-gradient from-transparent via-black/10 to-black/30 pointer-events-none" />
       </div>
 
-      {/* 2. Players around Table */}
+      {/* 2. Opponents arranged along sides of Table (reduced compact size) */}
       <div className="relative flex-1 w-full h-full z-10">
-        {state.players.map((p) => {
-          const isLocal = p.id === state.myPlayerId;
-          const posIdx = getRelativePosition(p.seatIndex);
-          const posClass = SEAT_POSITIONS[posIdx];
-
-          // For local player at bottom, avatar is rendered above hand
-          if (isLocal) {
-            return (
-              <div
-                key={p.id}
-                className="absolute bottom-36 sm:bottom-44 left-1/2 -translate-x-1/2 z-20 flex flex-col items-center"
-              >
-                <div className="relative group">
-                  <div
-                    className={`
-                      w-14 h-14 sm:w-16 sm:h-16 rounded-full overflow-hidden transition-all duration-300
-                      ${isMyTurn ? 'gold-active-ring scale-105' : 'shadow-xl'}
-                    `}
-                  >
-                    <img
-                      src={`/assets/avatars/${p.avatar || 'player'}.png`}
-                      alt={p.nickname}
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                  {/* Local user "Вы" badge tag */}
-                  <div className="absolute -top-1.5 left-1/2 -translate-x-1/2 px-2 py-0.2 rounded-full bg-amber-500 text-black text-[9px] font-black uppercase tracking-wider shadow">
-                    Вы
-                  </div>
-                </div>
-                <div className="mt-1 flex flex-col items-center px-4 py-0.5 rounded-xl bg-black/75 border border-white/10 backdrop-blur-md shadow-lg min-w-[75px]">
-                  <span className="text-[11px] font-semibold text-white/95 truncate">
-                    {p.nickname}
-                  </span>
-                  <span className={`text-xs font-bold ${p.score < 0 ? 'text-emerald-400' : 'text-amber-300'}`}>
-                    {p.isEliminated ? 'ВЫБЫЛ' : p.score}
-                  </span>
-                </div>
-              </div>
-            );
-          }
-
+        {opponents.map((p, idx) => {
+          const posClass = getOpponentPositionClass(idx, opponents.length);
           return (
             <PlayerSeat
               key={p.id}
@@ -131,8 +116,8 @@ export const GameTable: React.FC<GameTableProps> = ({
         </div>
       </div>
 
-      {/* 3. Bottom Area: Hand + Controls */}
-      <div className="relative z-30 flex flex-col w-full pb-3">
+      {/* 3. Bottom Area: Hand + Controls (User Avatar is positioned directly under cards) */}
+      <div className="relative z-30 flex flex-col w-full pb-2">
         {/* Hand of Cards */}
         <PlayerHand
           hand={state.myHand}
@@ -141,7 +126,7 @@ export const GameTable: React.FC<GameTableProps> = ({
           onPlayCard={onPlayCard}
         />
 
-        {/* Controls Bar */}
+        {/* Controls Bar with Local Player Avatar in center */}
         <Controls
           activeSuit={state.activeSuit}
           roundNumber={state.roundNumber}
@@ -153,6 +138,7 @@ export const GameTable: React.FC<GameTableProps> = ({
           onPassTurn={onPassTurn}
           onOpenChat={onOpenChat}
           unreadChatCount={unreadChatCount}
+          myPlayer={myPlayer}
         />
       </div>
     </div>
