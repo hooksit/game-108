@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { PlayerPublic } from '@game-108/shared';
+import { PlayerPublic, LobbyInfo } from '@game-108/shared';
 import { Users, Play, Crown } from 'lucide-react';
 
 interface LobbyModalProps {
@@ -7,6 +7,7 @@ interface LobbyModalProps {
   players: PlayerPublic[];
   isHost: boolean;
   myPlayerId: string;
+  lobbyInfo?: LobbyInfo | null;
   onQuickJoin: (nickname: string, avatar: string) => void;
   onStartGame: () => void;
 }
@@ -18,6 +19,7 @@ export const LobbyModal: React.FC<LobbyModalProps> = ({
   players,
   isHost,
   myPlayerId,
+  lobbyInfo,
   onQuickJoin,
   onStartGame
 }) => {
@@ -141,7 +143,7 @@ export const LobbyModal: React.FC<LobbyModalProps> = ({
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md select-none">
       <div className="w-full max-w-md p-6 sm:p-8 rounded-3xl bg-[#1d1611] border border-amber-500/40 shadow-2xl flex flex-col items-center text-white">
         {/* Brand header */}
-        <div className="text-center mb-6">
+        <div className="text-center mb-5">
           <h1 className="text-4xl sm:text-5xl font-extrabold tracking-wider text-amber-300 drop-shadow-md">
             108
           </h1>
@@ -149,6 +151,47 @@ export const LobbyModal: React.FC<LobbyModalProps> = ({
             Карточная игра
           </p>
         </div>
+
+        {/* Live Lobby Active Game Notice */}
+        {lobbyInfo && lobbyInfo.players.length > 0 && (
+          <div className="w-full mb-5 p-3.5 rounded-2xl bg-black/50 border border-amber-500/40 shadow-inner flex flex-col gap-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-xs text-amber-200">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
+                <span>
+                  <strong className="text-amber-300 font-bold">{lobbyInfo.hostNickname}</strong> создал игру
+                </span>
+              </div>
+              <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30">
+                {lobbyInfo.playerCount}/6 игроков
+              </span>
+            </div>
+
+            <div className="flex items-center gap-2 pt-2 border-t border-white/10">
+              <span className="text-[11px] text-white/60 shrink-0">В сети:</span>
+              <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 scrollbar-thin">
+                {lobbyInfo.players.map((p, idx) => (
+                  <div
+                    key={idx}
+                    className="flex items-center gap-1.5 px-2 py-1 rounded-xl bg-black/40 border border-white/10 shrink-0"
+                  >
+                    <div className="relative">
+                      <img
+                        src={`/assets/avatars/${p.avatar || 'player'}.png`}
+                        alt={p.nickname}
+                        className="w-5 h-5 rounded-full object-cover border border-amber-400/40"
+                      />
+                      <span className="absolute bottom-0 right-0 w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    </div>
+                    <span className="text-xs text-white/90 truncate max-w-[85px]">
+                      {p.nickname}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Nickname Input */}
         <div className="w-full mb-5">

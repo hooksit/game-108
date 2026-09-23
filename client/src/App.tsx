@@ -1,8 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
-import { MessageSquare } from 'lucide-react';
+import { Volume2, VolumeX } from 'lucide-react';
 import { useGameSocket } from './hooks/useGameSocket';
 import { useSound } from './hooks/useSound';
-import { TopBar } from './components/TopBar/TopBar';
 import { GameTable } from './components/Table/GameTable';
 import { LobbyModal } from './components/Modals/LobbyModal';
 import { QueenModal } from './components/Modals/QueenModal';
@@ -17,6 +16,7 @@ export default function App() {
     messages,
     errorMessage,
     notice,
+    lobbyInfo,
     quickJoin,
     startGame,
     playCard,
@@ -136,13 +136,14 @@ export default function App() {
 
   return (
     <div className="relative w-screen h-[100dvh] flex flex-col bg-[#110c09] overflow-hidden select-none">
-      {/* Top Header */}
-      <TopBar
-        roundNumber={gameState?.roundNumber || 0}
-        roomId={gameState?.roomId}
-        isMuted={isMuted}
-        onToggleSound={toggleMute}
-      />
+      {/* Floating Sound Toggle Button */}
+      <button
+        onClick={toggleMute}
+        className="fixed top-3.5 right-3.5 z-40 p-2.5 rounded-2xl bg-black/50 border border-white/10 backdrop-blur-md text-amber-200 hover:text-amber-100 hover:bg-black/70 active:scale-95 transition-all shadow-lg"
+        title={isMuted ? 'Включить звук' : 'Выключить звук'}
+      >
+        {isMuted ? <VolumeX className="w-4 h-4 text-white/40" /> : <Volume2 className="w-4 h-4 text-amber-300" />}
+      </button>
 
       {/* Main Table Screen */}
       {gameState ? (
@@ -160,11 +161,11 @@ export default function App() {
         </div>
       )}
 
-      {/* Floating Chat Message Toast (auto-dismiss 5s) */}
+      {/* Floating Chat Message Toast (semi-transparent, auto-dismiss 5s, no icon) */}
       {chatToast && (
         <div
           onClick={handleOpenChat}
-          className="fixed top-14 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3 px-4 py-2 rounded-2xl bg-black/90 border border-amber-400 text-white shadow-2xl backdrop-blur-md cursor-pointer hover:bg-black transition-all animate-bounce"
+          className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-black/60 border border-amber-500/40 text-white shadow-2xl backdrop-blur-md cursor-pointer hover:bg-black/75 transition-all animate-bounce"
           title="Нажмите чтобы открыть чат"
         >
           <img
@@ -180,7 +181,6 @@ export default function App() {
               {chatToast.message}
             </span>
           </div>
-          <MessageSquare className="w-4 h-4 text-amber-400 shrink-0 ml-1" />
         </div>
       )}
 
@@ -205,6 +205,7 @@ export default function App() {
           players={gameState?.players || []}
           isHost={isHost}
           myPlayerId={gameState?.myPlayerId || ''}
+          lobbyInfo={lobbyInfo}
           onQuickJoin={(nick, av) => quickJoin(nick, av)}
           onStartGame={startGame}
         />
@@ -213,6 +214,7 @@ export default function App() {
       {/* Queen Suit Selection Modal */}
       <QueenModal
         isOpen={showQueenModal}
+        hand={gameState?.myHand || []}
         onSelectSuit={selectQueenSuit}
       />
 

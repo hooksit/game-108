@@ -23,10 +23,26 @@ export interface ClientToServerEvents {
   'chat:send': (data: { message: string }) => void;
 }
 
+export interface LobbyPlayerInfo {
+  nickname: string;
+  avatar: string;
+  isHost: boolean;
+}
+
+export interface LobbyInfo {
+  hasActiveGame: boolean;
+  phase: 'LOBBY' | 'PLAYING';
+  hostNickname: string;
+  hostAvatar: string;
+  playerCount: number;
+  players: LobbyPlayerInfo[];
+}
+
 // Server -> Client events
 export interface ServerToClientEvents {
   'game:state': (state: GameStateView) => void;
   'game:error': (data: { message: string }) => void;
   'chat:message': (data: { senderId: string; nickname: string; message: string; timestamp: number }) => void;
   'action:notice': (data: { text: string; type?: 'info' | 'penalty' | 'win' | 'special' }) => void;
+  'lobby:info': (data: LobbyInfo | null) => void;
 }

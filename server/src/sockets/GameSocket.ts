@@ -13,6 +13,13 @@ export function registerSocketHandlers(
 ) {
   const roomManager = RoomManager.getInstance();
 
+  // Send current lobby info to newly connected client
+  socket.emit('lobby:info', roomManager.getLobbyInfo());
+
+  function broadcastLobbyInfo() {
+    io.emit('lobby:info', roomManager.getLobbyInfo());
+  }
+
   // Helper to broadcast individual sanitized view to each connected player in a room
   function broadcastSessionState(session: GameSession) {
     for (const player of session.players) {
@@ -21,6 +28,7 @@ export function registerSocketHandlers(
         io.to(player.id).emit('game:state', playerView);
       }
     }
+    broadcastLobbyInfo();
   }
 
   // 1. Create Room

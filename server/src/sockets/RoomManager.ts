@@ -1,4 +1,5 @@
 import { GameSession } from '../engine/GameSession';
+import { LobbyInfo } from '@game-108/shared';
 
 export class RoomManager {
   private static instance: RoomManager;
@@ -120,6 +121,28 @@ export class RoomManager {
   public getSessionByPlayerId(playerId: string): GameSession | undefined {
     const roomId = this.playerRoomMap.get(playerId);
     return roomId ? this.rooms.get(roomId) : undefined;
+  }
+
+  public getLobbyInfo(): LobbyInfo | null {
+    for (const [, session] of this.rooms.entries()) {
+      const activePlayers = session.players.filter(p => p.isConnected);
+      if (activePlayers.length > 0) {
+        const host = session.players.find(p => p.isHost) || activePlayers[0];
+        return {
+          hasActiveGame: true,
+          phase: session.phase === 'LOBBY' ? 'LOBBY' : 'PLAYING',
+          hostNickname: host.nickname,
+          hostAvatar: host.avatar || 'player',
+          playerCount: activePlayers.length,
+          players: activePlayers.map(p => ({
+            nickname: p.nickname,
+            avatar: p.avatar || 'player',
+            isHost: p.isHost
+          }))
+        };
+      }
+    }
+    return null;
   }
 
   private generateRoomId(): string {

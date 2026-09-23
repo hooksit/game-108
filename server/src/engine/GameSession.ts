@@ -306,8 +306,8 @@ export class GameSession {
 
     if (card.rank === '8') {
       this.activeSuit = card.suit;
-      this.lastActionMessage = `${player.nickname} сыграл 8. Следующий игрок ходит по масти ${this.activeSuit}.`;
-      this.advanceTurn();
+      this.lastActionMessage = `${player.nickname} сыграл 8! Должен перебить её по масти ${this.activeSuit} (или другой 8, или Дамой).`;
+      // Turn stays with the player who threw the 8 to cover it!
       return { success: true };
     }
 

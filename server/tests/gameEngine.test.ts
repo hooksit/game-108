@@ -200,34 +200,35 @@ describe('Game 108 Engine Comprehensive Test Suite', () => {
     // p1 plays HEARTS_8
     session.playCard('p1', 'HEARTS_8');
     expect(session.activeSuit).toBe('HEARTS');
-    expect(session.currentTurnIndex).toBe(1); // p2's turn
+    // It remains p1's turn to cover their own 8!
+    expect(session.currentTurnIndex).toBe(0);
 
-    // p2 cannot play SPADES_10 (wrong suit)
-    expect(session.playCard('p2', 'SPADES_10').success).toBe(false);
+    // p1 cannot play SPADES_6 (wrong suit)
+    expect(session.playCard('p1', 'SPADES_6').success).toBe(false);
 
-    // p2 initiates draw
-    const drawRes = session.drawCard('p2');
+    // p1 initiates draw to cover the 8
+    const drawRes = session.drawCard('p1');
     expect(drawRes.success).toBe(true);
     expect(session.phase).toBe('EIGHT_DRAW');
 
-    // p2 draws additional hidden card
-    session.eightDraw('p2');
-    expect(session.players[1].hiddenDrawCards!.length).toBeGreaterThanOrEqual(1);
+    // p1 draws additional hidden card
+    session.eightDraw('p1');
+    expect(session.players[0].hiddenDrawCards!.length).toBeGreaterThanOrEqual(1);
 
-    // Give p2 a matching card in hidden cards to test selection, plus extra card so round doesn't end
-    session.players[1].hiddenDrawCards!.push({ id: 'HEARTS_9', suit: 'HEARTS', rank: '9' });
-    session.players[1].hiddenDrawCards!.push({ id: 'CLUBS_6', suit: 'CLUBS', rank: '6' });
+    // Give p1 a matching card in hidden cards to test selection, plus extra card so round doesn't end
+    session.players[0].hiddenDrawCards!.push({ id: 'HEARTS_9', suit: 'HEARTS', rank: '9' });
+    session.players[0].hiddenDrawCards!.push({ id: 'CLUBS_6', suit: 'CLUBS', rank: '6' });
 
-    // p2 stops drawing
-    session.eightStop('p2');
+    // p1 stops drawing
+    session.eightStop('p1');
     expect(session.phase).toBe('EIGHT_SELECT');
 
-    // p2 selects the HEARTS_9 card
-    const selectRes = session.eightSelect('p2', 'HEARTS_9');
+    // p1 selects the HEARTS_9 card to cover the 8
+    const selectRes = session.eightSelect('p1', 'HEARTS_9');
     expect(selectRes.success).toBe(true);
     expect(session.getTopCard()?.id).toBe('HEARTS_9');
     expect(session.phase).toBe('PLAYER_TURN');
-    expect(session.currentTurnIndex).toBe(2); // Turn passed to p3
+    expect(session.currentTurnIndex).toBe(1); // Turn now passed to p2!
   });
 
   it('10. Eight chain: playing a new 8 requires same player to continue with new suit', () => {
@@ -387,14 +388,10 @@ describe('Game 108 Engine Comprehensive Test Suite', () => {
     const res8 = session.playCard('p1', 'HEARTS_8');
     expect(res8.success).toBe(true);
     expect(session.activeSuit).toBe('HEARTS');
+    expect(session.currentTurnIndex).toBe(0); // Still p1's turn to cover!
 
-    // Next turn on HEARTS_8 with a Queen:
-    session.currentTurnIndex = 1;
-    session.players[1].hand = [
-      { id: 'SPADES_Q', suit: 'SPADES', rank: 'Q' },
-      { id: 'CLUBS_9', suit: 'CLUBS', rank: '9' }
-    ];
-    const resQ = session.playCard('p2', 'SPADES_Q');
+    // p1 can immediately cover their 8 with a Queen!
+    const resQ = session.playCard('p1', 'CLUBS_Q');
     expect(resQ.success).toBe(true);
     expect(session.phase).toBe('QUEEN_SUIT_SELECTION');
   });

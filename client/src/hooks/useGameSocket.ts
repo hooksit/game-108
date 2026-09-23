@@ -4,6 +4,7 @@ import {
   ClientToServerEvents,
   ServerToClientEvents,
   GameStateView,
+  LobbyInfo,
   Suit
 } from '@game-108/shared';
 
@@ -22,6 +23,7 @@ export function useGameSocket() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [notice, setNotice] = useState<{ text: string; type?: string } | null>(null);
+  const [lobbyInfo, setLobbyInfo] = useState<LobbyInfo | null>(null);
 
   useEffect(() => {
     // Determine server URL: in prod use same origin, in dev proxy or port 3000
@@ -40,6 +42,10 @@ export function useGameSocket() {
     socket.on('disconnect', () => {
       setIsConnected(false);
       console.log('Disconnected from Game 108 server');
+    });
+
+    socket.on('lobby:info', (info: LobbyInfo | null) => {
+      setLobbyInfo(info);
     });
 
     socket.on('game:state', (state: GameStateView) => {
@@ -196,6 +202,7 @@ export function useGameSocket() {
     messages,
     errorMessage,
     notice,
+    lobbyInfo,
     quickJoin,
     createRoom,
     joinRoom,
