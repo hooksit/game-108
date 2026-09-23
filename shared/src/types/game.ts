@@ -56,6 +56,13 @@ export interface RoundResult {
   nextStarterId: string;
 }
 
+export interface RestartVote {
+  initiatorId: string;
+  initiatorName: string;
+  agreedPlayerIds: string[];
+  totalNeeded: number;
+}
+
 export interface GameStateView {
   roomId: string;
   phase: GamePhase;
@@ -79,4 +86,7 @@ export interface GameStateView {
   lastActionMessage?: string;
   roundResult?: RoundResult;
   gameWinner?: PlayerPublic;
+  isSpectator?: boolean;
+  spectatorCount?: number;
+  restartVote?: RestartVote | null;
 }

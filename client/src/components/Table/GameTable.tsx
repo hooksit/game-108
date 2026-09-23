@@ -12,6 +12,9 @@ interface GameTableProps {
   onPassTurn: () => void;
   onOpenChat: () => void;
   unreadChatCount?: number;
+  myHandScore?: number;
+  onProposeRestart?: () => void;
+  onVoteRestart?: () => void;
 }
 
 // Dynamically determine opponent position around the table based on opponent count
@@ -52,7 +55,10 @@ export const GameTable: React.FC<GameTableProps> = ({
   onDrawCard,
   onPassTurn,
   onOpenChat,
-  unreadChatCount
+  unreadChatCount,
+  myHandScore,
+  onProposeRestart,
+  onVoteRestart
 }) => {
   const isMyTurn = state.currentTurnPlayerId === state.myPlayerId;
   const currentTurnPlayer = state.players.find((p) => p.id === state.currentTurnPlayerId);
@@ -73,6 +79,16 @@ export const GameTable: React.FC<GameTableProps> = ({
 
   return (
     <div className="relative flex-1 flex flex-col justify-between w-full max-w-md mx-auto overflow-hidden select-none">
+      {/* Spectator floating banner */}
+      {state.isSpectator && (
+        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 px-3 py-1 rounded-full bg-black/80 border border-amber-400/50 backdrop-blur-md shadow-2xl flex items-center gap-2 text-white pointer-events-none whitespace-nowrap">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="text-[11px] font-bold text-amber-200">
+            👁 Наблюдатель (вы сможете сыграть в следующей партии)
+          </span>
+        </div>
+      )}
+
       {/* 1. High-Resolution Table Artwork Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 flex items-center justify-center">
         <img
@@ -123,6 +139,7 @@ export const GameTable: React.FC<GameTableProps> = ({
           hand={state.myHand}
           validPlayableCardIds={state.validPlayableCardIds}
           isMyTurn={isMyTurn}
+          handScore={myHandScore}
           onPlayCard={onPlayCard}
         />
 
@@ -139,6 +156,12 @@ export const GameTable: React.FC<GameTableProps> = ({
           onOpenChat={onOpenChat}
           unreadChatCount={unreadChatCount}
           myPlayer={myPlayer}
+          myHandScore={myHandScore}
+          restartVote={state.restartVote}
+          myPlayerId={state.myPlayerId}
+          isSpectator={state.isSpectator}
+          onProposeRestart={onProposeRestart}
+          onVoteRestart={onVoteRestart}
         />
       </div>
     </div>

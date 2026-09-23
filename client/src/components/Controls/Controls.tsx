@@ -1,6 +1,6 @@
 import React from 'react';
-import { MessageSquare } from 'lucide-react';
-import { Suit, SUIT_SYMBOLS, PenaltyState, PlayerPublic } from '@game-108/shared';
+import { MessageSquare, RotateCcw } from 'lucide-react';
+import { Suit, SUIT_SYMBOLS, PenaltyState, PlayerPublic, RestartVote } from '@game-108/shared';
 
 interface ControlsProps {
   activeSuit: Suit | null;
@@ -14,6 +14,12 @@ interface ControlsProps {
   onOpenChat: () => void;
   unreadChatCount?: number;
   myPlayer?: PlayerPublic;
+  myHandScore?: number;
+  restartVote?: RestartVote | null;
+  myPlayerId?: string;
+  isSpectator?: boolean;
+  onProposeRestart?: () => void;
+  onVoteRestart?: () => void;
 }
 
 export const Controls: React.FC<ControlsProps> = ({
@@ -27,9 +33,16 @@ export const Controls: React.FC<ControlsProps> = ({
   onPassTurn,
   onOpenChat,
   unreadChatCount = 0,
-  myPlayer
+  myPlayer,
+  myHandScore,
+  restartVote,
+  myPlayerId,
+  isSpectator,
+  onProposeRestart,
+  onVoteRestart
 }) => {
   const isRedSuit = activeSuit === 'HEARTS' || activeSuit === 'DIAMONDS';
+  const hasVotedRestart = restartVote && myPlayerId && restartVote.agreedPlayerIds.includes(myPlayerId);
 
   // Determine action button label & handler
   let actionLabel = 'Ожидание';
@@ -53,19 +66,47 @@ export const Controls: React.FC<ControlsProps> = ({
   }
 
   return (
-    <div className="relative z-20 flex items-center justify-between w-full px-3 py-1.5 pointer-events-auto">
-      {/* Bottom Left: Trump / Suit Info Box */}
-      <div className="flex flex-col items-center justify-center w-16 h-16 sm:w-20 sm:h-20 rounded-xl bg-black/60 border border-white/10 backdrop-blur-md shadow-lg p-1 shrink-0">
-        <span className="text-[9px] font-semibold uppercase tracking-wider text-amber-200/70">
-          Масть
-        </span>
-        <div className={`text-2xl sm:text-3xl leading-none ${isRedSuit ? 'text-rose-500' : 'text-slate-100'} drop-shadow`}>
-          {activeSuit ? SUIT_SYMBOLS[activeSuit] : '—'}
-        </div>
-        <div className="mt-0.5 pt-0.5 border-t border-white/10 w-full text-center">
-          <span className="text-[10px] font-bold text-amber-300 leading-none">
-            Р: {roundNumber > 0 ? `${roundNumber}/12` : '1/12'}
+    <div className="relative z-20 flex items-center justify-between w-full px-3 py-1 pointer-events-auto">
+      {/* Bottom Left: Restart Button + 12 Rounds Box */}
+      <div className="flex flex-col items-center gap-1 shrink-0">
+        {!isSpectator && onProposeRestart && (
+          <button
+            onClick={hasVotedRestart ? undefined : (restartVote ? onVoteRestart : onProposeRestart)}
+            className={`
+              flex items-center justify-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold transition-all shadow-md active:scale-95
+              ${restartVote
+                ? hasVotedRestart
+                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 cursor-default'
+                  : 'bg-gradient-to-r from-emerald-500 to-amber-500 text-black border border-emerald-300 animate-pulse shadow-[0_0_12px_rgba(52,211,153,0.7)] cursor-pointer'
+                : 'bg-black/60 text-amber-200/80 border border-white/10 hover:text-amber-100 hover:border-amber-400/50'
+              }
+            `}
+            title="Предложить начать заново"
+          >
+            <RotateCcw className="w-2.5 h-2.5" />
+            <span>
+              {restartVote
+                ? hasVotedRestart
+                  ? `Ждём (${restartVote.agreedPlayerIds.length}/${restartVote.totalNeeded})`
+                  : `Одобрить (${restartVote.agreedPlayerIds.length}/${restartVote.totalNeeded})`
+                : 'Заново'}
+            </span>
+          </button>
+        )}
+
+        {/* 12 Rounds Box (Replaced "МАСТЬ" with "12 РАУНДОВ") */}
+        <div className="flex flex-col items-center justify-center w-16 h-14 sm:w-20 sm:h-16 rounded-xl bg-black/60 border border-white/10 backdrop-blur-md shadow-lg p-1">
+          <span className="text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider text-amber-300">
+            12 раундов
           </span>
+          <div className={`text-xl sm:text-2xl leading-none ${isRedSuit ? 'text-rose-500' : 'text-slate-100'} drop-shadow my-0.5`}>
+            {activeSuit ? SUIT_SYMBOLS[activeSuit] : '—'}
+          </div>
+          <div className="pt-0.5 border-t border-white/10 w-full text-center">
+            <span className="text-[10px] font-bold text-amber-200/90 leading-none">
+              Р: {roundNumber > 0 ? `${roundNumber}/12` : '1/12'}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -103,14 +144,21 @@ export const Controls: React.FC<ControlsProps> = ({
             </div>
           </div>
 
-          {/* Nickname & Score */}
-          <div className="mt-0.5 flex flex-col items-center px-2 py-0.5 rounded-lg bg-black/80 border border-white/15 shadow-md min-w-[56px] max-w-[80px]">
-            <span className="text-[10px] sm:text-[11px] font-semibold text-white/95 truncate max-w-[70px] leading-tight">
+          {/* Nickname, Score & Real-time Hand Score */}
+          <div className="mt-0.5 flex flex-col items-center px-2 py-0.5 rounded-lg bg-black/80 border border-white/15 shadow-md min-w-[56px] max-w-[90px]">
+            <span className="text-[10px] sm:text-[11px] font-semibold text-white/95 truncate max-w-[80px] leading-tight">
               {myPlayer.nickname}
             </span>
-            <span className={`text-[10px] sm:text-[11px] font-bold ${myPlayer.score < 0 ? 'text-emerald-400' : 'text-amber-300'} leading-none mt-0.5`}>
-              {myPlayer.isEliminated ? 'ВЫБЫЛ' : `${myPlayer.score} оч.`}
-            </span>
+            <div className="flex items-center gap-1 leading-none mt-0.5">
+              <span className={`text-[10px] sm:text-[11px] font-bold ${myPlayer.score < 0 ? 'text-emerald-400' : 'text-amber-300'}`}>
+                {myPlayer.isEliminated ? 'ВЫБЫЛ' : `${myPlayer.score} оч.`}
+              </span>
+            </div>
+            {myHandScore !== undefined && !myPlayer.isEliminated && (
+              <span className="text-[9px] font-bold text-emerald-400 leading-none mt-0.5" title="Сумма очков карт на руках">
+                в руке: {myHandScore}
+              </span>
+            )}
           </div>
         </div>
       )}

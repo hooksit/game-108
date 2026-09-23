@@ -20,6 +20,8 @@ export interface ClientToServerEvents {
   'eight:select': (data: { cardId: string }, callback?: (response: { success: boolean; error?: string }) => void) => void;
   
   'round:next': (callback?: (response: { success: boolean; error?: string }) => void) => void;
+  'game:proposeRestart': (callback?: (response: { success: boolean; error?: string }) => void) => void;
+  'game:voteRestart': (callback?: (response: { success: boolean; error?: string }) => void) => void;
   'chat:send': (data: { message: string }) => void;
 }
 

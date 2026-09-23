@@ -159,11 +159,11 @@ export const LobbyModal: React.FC<LobbyModalProps> = ({
               <div className="flex items-center gap-2 text-xs text-amber-200">
                 <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse" />
                 <span>
-                  <strong className="text-amber-300 font-bold">{lobbyInfo.hostNickname}</strong> создал игру
+                  <strong className="text-amber-300 font-bold">{lobbyInfo.hostNickname}</strong> {lobbyInfo.phase === 'PLAYING' ? 'играет партию' : 'создал игру'}
                 </span>
               </div>
               <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-amber-500/20 text-amber-300 font-semibold border border-amber-500/30">
-                {lobbyInfo.playerCount}/6 игроков
+                {lobbyInfo.phase === 'PLAYING' ? 'Идёт партия' : `${lobbyInfo.playerCount}/6 игроков`}
               </span>
             </div>
 
@@ -236,7 +236,7 @@ export const LobbyModal: React.FC<LobbyModalProps> = ({
           </div>
         </div>
 
-        {/* Join Button */}
+        {/* Join / Spectate Button */}
         <div className="w-full">
           <button
             onClick={handleJoin}
@@ -244,7 +244,7 @@ export const LobbyModal: React.FC<LobbyModalProps> = ({
             className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-600 to-amber-500 text-black font-extrabold text-base flex items-center justify-center gap-2 shadow-xl hover:brightness-110 active:scale-98 transition-all disabled:opacity-50"
           >
             <Play className="w-5 h-5 fill-current" />
-            Присоединиться к игре
+            {lobbyInfo?.phase === 'PLAYING' ? 'Смотреть игру (Наблюдатель)' : 'Присоединиться к игре'}
           </button>
         </div>
       </div>

@@ -20,12 +20,18 @@ export function registerSocketHandlers(
     io.emit('lobby:info', roomManager.getLobbyInfo());
   }
 
-  // Helper to broadcast individual sanitized view to each connected player in a room
+  // Helper to broadcast individual sanitized view to each connected player and spectator in a room
   function broadcastSessionState(session: GameSession) {
     for (const player of session.players) {
       if (player.isConnected) {
         const playerView = session.getPlayerView(player.id);
         io.to(player.id).emit('game:state', playerView);
+      }
+    }
+    for (const spec of session.spectators) {
+      if (spec.isConnected) {
+        const specView = session.getPlayerView(spec.id);
+        io.to(spec.id).emit('game:state', specView);
       }
     }
     broadcastLobbyInfo();
@@ -228,20 +234,54 @@ export function registerSocketHandlers(
     }
   });
 
-  // 10. Chat Message
+  // 10. Propose Restart
+  socket.on('game:proposeRestart', (callback) => {
+    const session = roomManager.getSessionByPlayerId(socket.id);
+    if (!session) {
+      callback?.({ success: false, error: 'Вы не в комнате' });
+      return;
+    }
+    const res = session.proposeRestart(socket.id);
+    callback?.(res);
+    broadcastSessionState(session);
+  });
+
+  // 11. Vote Restart
+  socket.on('game:voteRestart', (callback) => {
+    const session = roomManager.getSessionByPlayerId(socket.id);
+    if (!session) {
+      callback?.({ success: false, error: 'Вы не в комнате' });
+      return;
+    }
+    const res = session.voteRestart(socket.id);
+    callback?.(res);
+    broadcastSessionState(session);
+  });
+
+  // 12. Chat Message
   socket.on('chat:send', ({ message }) => {
     const session = roomManager.getSessionByPlayerId(socket.id);
     if (!session) return;
 
+    let nick = 'Игрок';
     const player = session.players.find(p => p.id === socket.id);
-    if (!player) return;
+    if (player) {
+      nick = player.nickname;
+    } else {
+      const spec = session.spectators.find(s => s.id === socket.id);
+      if (spec) {
+        nick = `${spec.nickname} (зритель)`;
+      } else {
+        return;
+      }
+    }
 
     const cleanMsg = message.trim().slice(0, 100);
     if (!cleanMsg) return;
 
     io.to(session.id).emit('chat:message', {
       senderId: socket.id,
-      nickname: player.nickname,
+      nickname: nick,
       message: cleanMsg,
       timestamp: Date.now()
     });

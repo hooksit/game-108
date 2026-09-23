@@ -16,7 +16,8 @@ import {
   QUEEN_WIN_BONUS,
   SPADES_QUEEN_WIN_BONUS,
   calculateHandScore,
-  processScore108
+  processScore108,
+  RestartVote
 } from '@game-108/shared';
 import { Deck } from './Deck';
 import { Rules } from './Rules';
@@ -26,6 +27,8 @@ export class GameSession {
   public phase: GamePhase = 'LOBBY';
   public roundNumber: number = 0;
   public players: PlayerPrivate[] = [];
+  public spectators: { id: string; nickname: string; avatar: string; isConnected: boolean }[] = [];
+  public restartVote: RestartVote | null = null;
   public currentTurnIndex: number = 0;
   public deck: Deck;
   public discardPile: Card[] = [];
@@ -120,6 +123,141 @@ export class GameSession {
     const active = this.getActivePlayers();
     if (active.length === 0) return null;
     return this.players[this.currentTurnIndex] || null;
+  }
+
+  // --- Spectator Management ---
+
+  public addSpectator(id: string, nickname: string, avatar: string = 'player'): boolean {
+    const existing = this.spectators.find(s => s.id === id);
+    if (existing) {
+      existing.isConnected = true;
+      existing.nickname = nickname;
+      existing.avatar = avatar;
+      return true;
+    }
+    this.spectators.push({ id, nickname, avatar, isConnected: true });
+    return true;
+  }
+
+  public removeSpectator(id: string): void {
+    const idx = this.spectators.findIndex(s => s.id === id);
+    if (idx !== -1) {
+      this.spectators.splice(idx, 1);
+    }
+  }
+
+  public isSpectator(id: string): boolean {
+    return this.spectators.some(s => s.id === id);
+  }
+
+  // --- Restart Vote Flow ---
+
+  public proposeRestart(playerId: string): { success: boolean; error?: string } {
+    if (this.phase === 'LOBBY') {
+      return { success: false, error: 'Игра ещё не началась' };
+    }
+
+    const player = this.players.find(p => p.id === playerId);
+    if (!player || !player.isConnected) {
+      return { success: false, error: 'Только участники игры могут предложить перезапуск' };
+    }
+
+    const activeConnected = this.players.filter(p => p.isConnected && !p.isEliminated);
+    const totalNeeded = Math.max(1, activeConnected.length);
+
+    this.restartVote = {
+      initiatorId: player.id,
+      initiatorName: player.nickname,
+      agreedPlayerIds: [player.id],
+      totalNeeded
+    };
+
+    this.lastActionMessage = `${player.nickname} предложил начать игру заново (${this.restartVote.agreedPlayerIds.length}/${totalNeeded}).`;
+
+    if (this.restartVote.agreedPlayerIds.length >= totalNeeded) {
+      this.executeRestart(player.id);
+    }
+
+    return { success: true };
+  }
+
+  public voteRestart(playerId: string): { success: boolean; error?: string } {
+    if (!this.restartVote) {
+      return { success: false, error: 'Нет активного предложения перезапуска' };
+    }
+
+    const player = this.players.find(p => p.id === playerId);
+    if (!player || !player.isConnected) {
+      return { success: false, error: 'Только участники игры могут голосовать' };
+    }
+
+    if (!this.restartVote.agreedPlayerIds.includes(playerId)) {
+      this.restartVote.agreedPlayerIds.push(playerId);
+    }
+
+    this.lastActionMessage = `${player.nickname} одобрил перезапуск (${this.restartVote.agreedPlayerIds.length}/${this.restartVote.totalNeeded}).`;
+
+    if (this.restartVote.agreedPlayerIds.length >= this.restartVote.totalNeeded) {
+      this.executeRestart(this.restartVote.initiatorId);
+    }
+
+    return { success: true };
+  }
+
+  public executeRestart(initiatorId: string): void {
+    this.phase = 'LOBBY';
+    this.roundNumber = 0;
+    this.deck.reset();
+    this.discardPile = [];
+    this.activeSuit = null;
+    this.penalty = { type: null, amount: 0 };
+    this.roundResult = undefined;
+    this.gameWinner = undefined;
+    this.restartVote = null;
+
+    // Reset existing active players
+    for (const p of this.players) {
+      p.score = 0;
+      p.hand = [];
+      p.hiddenDrawCards = [];
+      p.cardCount = 0;
+      p.isEliminated = false;
+      p.isActive = true;
+      p.isHost = (p.id === initiatorId);
+    }
+
+    if (!this.players.some(p => p.isHost)) {
+      if (this.players.length > 0) this.players[0].isHost = true;
+    }
+
+    // Move connected spectators into players list if there is room
+    const connectedSpectators = this.spectators.filter(s => s.isConnected);
+    for (const spec of connectedSpectators) {
+      if (this.players.length < MAX_PLAYERS) {
+        this.players.push({
+          id: spec.id,
+          nickname: spec.nickname,
+          avatar: spec.avatar,
+          seatIndex: this.players.length,
+          cardCount: 0,
+          score: 0,
+          isActive: true,
+          isEliminated: false,
+          isConnected: true,
+          isHost: spec.id === initiatorId,
+          hand: [],
+          hiddenDrawCards: []
+        });
+      }
+    }
+    this.spectators = [];
+
+    // Re-index seats
+    this.players.forEach((p, idx) => {
+      p.seatIndex = idx;
+    });
+
+    this.lastActionMessage = `Все игроки одобрили перезапуск! Игра возвращена в лобби. Запустить новую игру может ${this.players.find(p => p.isHost)?.nickname || 'создатель'}.`;
   }
 
   // --- Round & Match Flow ---
@@ -764,6 +902,9 @@ export class GameSession {
       (localPlayer?.hiddenDrawCards && localPlayer.hiddenDrawCards.length > 0) || false
     );
 
+    const isSpectator = !localPlayer && this.isSpectator(playerId);
+    const spectatorCount = this.spectators.filter(s => s.isConnected).length;
+
     return {
       roomId: this.id,
       phase: this.phase,
@@ -786,7 +927,10 @@ export class GameSession {
       canStopEightDraw,
       lastActionMessage: this.lastActionMessage,
       roundResult: this.roundResult,
-      gameWinner: this.gameWinner
+      gameWinner: this.gameWinner,
+      isSpectator,
+      spectatorCount,
+      restartVote: this.restartVote
     };
   }
 }

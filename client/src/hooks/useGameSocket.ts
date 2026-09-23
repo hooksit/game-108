@@ -191,6 +191,24 @@ export function useGameSocket() {
     });
   }, []);
 
+  const proposeRestart = useCallback((): Promise<{ success: boolean; error?: string }> => {
+    return new Promise((resolve) => {
+      if (!socketRef.current) return resolve({ success: false, error: 'Нет связи' });
+      socketRef.current.emit('game:proposeRestart', (res) => {
+        resolve(res || { success: true });
+      });
+    });
+  }, []);
+
+  const voteRestart = useCallback((): Promise<{ success: boolean; error?: string }> => {
+    return new Promise((resolve) => {
+      if (!socketRef.current) return resolve({ success: false, error: 'Нет связи' });
+      socketRef.current.emit('game:voteRestart', (res) => {
+        resolve(res || { success: true });
+      });
+    });
+  }, []);
+
   const sendMessage = useCallback((message: string) => {
     if (!socketRef.current) return;
     socketRef.current.emit('chat:send', { message });
@@ -215,6 +233,8 @@ export function useGameSocket() {
     eightStop,
     eightSelect,
     nextRound,
+    proposeRestart,
+    voteRestart,
     sendMessage
   };
 }

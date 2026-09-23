@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
+import { calculateHandScore } from '@game-108/shared';
 import { useGameSocket } from './hooks/useGameSocket';
 import { useSound } from './hooks/useSound';
 import { GameTable } from './components/Table/GameTable';
@@ -27,6 +28,8 @@ export default function App() {
     eightStop,
     eightSelect,
     nextRound,
+    proposeRestart,
+    voteRestart,
     sendMessage
   } = useGameSocket();
 
@@ -137,6 +140,10 @@ export default function App() {
   const showRoundEndModal = gameState?.phase === 'ROUND_END';
   const showGameEndModal = gameState?.phase === 'GAME_END';
 
+  const myHandScore = useMemo(() => {
+    return gameState?.myHand ? calculateHandScore(gameState.myHand) : 0;
+  }, [gameState?.myHand]);
+
   return (
     <div className="relative w-screen h-[100dvh] flex flex-col bg-[#110c09] overflow-hidden select-none">
       {/* Floating Sound Toggle Button (Left side) */}
@@ -157,6 +164,9 @@ export default function App() {
           onPassTurn={handlePassTurn}
           onOpenChat={handleOpenChat}
           unreadChatCount={unreadCount}
+          myHandScore={myHandScore}
+          onProposeRestart={proposeRestart}
+          onVoteRestart={voteRestart}
         />
       ) : (
         <div className="flex-1 flex items-center justify-center text-amber-200/50 text-sm animate-pulse">
@@ -164,11 +174,11 @@ export default function App() {
         </div>
       )}
 
-      {/* Floating Chat Message Toast (semi-transparent, auto-dismiss 5s, no icon, responsive width & overflow safe) */}
+      {/* Floating Chat Message Toast (semi-transparent, auto-dismiss 5s, no icon, responsive width & strictly within bounds) */}
       {chatToast && (
         <div
           onClick={handleOpenChat}
-          className="fixed top-3.5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-black/60 border border-amber-500/40 text-white shadow-2xl backdrop-blur-md cursor-pointer hover:bg-black/75 transition-all w-[90%] max-w-[280px] sm:max-w-xs animate-bounce"
+          className="fixed top-16 left-4 right-4 max-w-xs mx-auto z-50 flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-black/75 border border-amber-500/50 text-white shadow-2xl backdrop-blur-md cursor-pointer hover:bg-black/85 transition-all animate-bounce"
           title="Нажмите чтобы открыть чат"
         >
           <img

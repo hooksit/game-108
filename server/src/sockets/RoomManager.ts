@@ -91,7 +91,16 @@ export class RoomManager {
       }
     }
 
-    // 3. Otherwise create a new room as host
+    // 3. If there is an active ongoing game (phase !== 'LOBBY'), join as a SPECTATOR
+    for (const [roomId, session] of this.rooms.entries()) {
+      if (session.phase !== 'LOBBY') {
+        session.addSpectator(playerId, nickname, avatar);
+        this.playerRoomMap.set(playerId, roomId);
+        return { roomId, session };
+      }
+    }
+
+    // 4. Otherwise create a new room as host
     return this.createRoom(playerId, nickname, avatar);
   }
 
@@ -103,9 +112,13 @@ export class RoomManager {
     this.playerRoomMap.delete(playerId);
 
     if (session) {
-      session.removePlayer(playerId);
+      if (session.isSpectator(playerId)) {
+        session.removeSpectator(playerId);
+      } else {
+        session.removePlayer(playerId);
+      }
       // If room is empty, clean it up
-      if (session.players.every(p => !p.isConnected)) {
+      if (session.players.every(p => !p.isConnected) && session.spectators.every(s => !s.isConnected)) {
         this.rooms.delete(roomId);
       }
       return { roomId, session };

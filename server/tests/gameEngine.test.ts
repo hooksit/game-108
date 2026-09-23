@@ -448,4 +448,42 @@ describe('Game 108 Engine Comprehensive Test Suite', () => {
     expect(session.players[1].hand.length).toBe(2);
     expect(session.players[1].score).toBeGreaterThan(2);
   });
+
+  it('23. Spectator mode: spectator receives sanitized state and cannot make moves', () => {
+    session.startMatch();
+    session.addSpectator('spec1', 'Наблюдатель', 'zara');
+
+    const view = session.getPlayerView('spec1');
+    expect(view.isSpectator).toBe(true);
+    expect(view.myHand.length).toBe(0);
+    expect(view.canDrawCard).toBe(false);
+    expect(view.canPass).toBe(false);
+  });
+
+  it('24. Restart vote: requires all players to agree, resets to lobby, and sets initiator as host', () => {
+    session.startMatch();
+    session.addSpectator('spec1', 'Зритель 1', 'zara');
+
+    // p1 proposes restart
+    const propRes = session.proposeRestart('p1');
+    expect(propRes.success).toBe(true);
+    expect(session.restartVote).not.toBeNull();
+    expect(session.restartVote?.agreedPlayerIds).toContain('p1');
+
+    // p2 votes to agree
+    const voteRes = session.voteRestart('p2');
+    expect(voteRes.success).toBe(true);
+    expect(session.phase).toBe('PLAYER_TURN'); // Still waiting for p3
+
+    // p3 votes to agree
+    const voteRes3 = session.voteRestart('p3');
+    expect(voteRes3.success).toBe(true);
+
+    // All agreed -> game reset to LOBBY!
+    expect(session.phase).toBe('LOBBY');
+    expect(session.restartVote).toBeNull();
+    expect(session.players.find(p => p.id === 'p1')?.isHost).toBe(true);
+    // Spectator is moved into players list for the next game!
+    expect(session.players.some(p => p.id === 'spec1')).toBe(true);
+  });
 });
