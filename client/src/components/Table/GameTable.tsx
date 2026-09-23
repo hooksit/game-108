@@ -13,6 +13,8 @@ interface GameTableProps {
   onOpenChat: () => void;
   unreadChatCount?: number;
   myHandScore?: number;
+  isMuted?: boolean;
+  onToggleMute?: () => void;
   onProposeRestart?: () => void;
   onVoteRestart?: () => void;
 }
@@ -57,6 +59,8 @@ export const GameTable: React.FC<GameTableProps> = ({
   onOpenChat,
   unreadChatCount,
   myHandScore,
+  isMuted,
+  onToggleMute,
   onProposeRestart,
   onVoteRestart
 }) => {
@@ -139,7 +143,6 @@ export const GameTable: React.FC<GameTableProps> = ({
           hand={state.myHand}
           validPlayableCardIds={state.validPlayableCardIds}
           isMyTurn={isMyTurn}
-          handScore={myHandScore}
           onPlayCard={onPlayCard}
         />
 
@@ -160,6 +163,8 @@ export const GameTable: React.FC<GameTableProps> = ({
           restartVote={state.restartVote}
           myPlayerId={state.myPlayerId}
           isSpectator={state.isSpectator}
+          isMuted={isMuted}
+          onToggleMute={onToggleMute}
           onProposeRestart={onProposeRestart}
           onVoteRestart={onVoteRestart}
         />

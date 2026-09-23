@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
-import { Volume2, VolumeX } from 'lucide-react';
 import { calculateHandScore } from '@game-108/shared';
 import { useGameSocket } from './hooks/useGameSocket';
 import { useSound } from './hooks/useSound';
@@ -146,15 +145,6 @@ export default function App() {
 
   return (
     <div className="relative w-screen h-[100dvh] flex flex-col bg-[#110c09] overflow-hidden select-none">
-      {/* Floating Sound Toggle Button (Left side) */}
-      <button
-        onClick={toggleMute}
-        className="fixed top-3.5 left-3.5 z-40 p-2.5 rounded-2xl bg-black/50 border border-white/10 backdrop-blur-md text-amber-200 hover:text-amber-100 hover:bg-black/70 active:scale-95 transition-all shadow-lg"
-        title={isMuted ? 'Включить звук' : 'Выключить звук'}
-      >
-        {isMuted ? <VolumeX className="w-4 h-4 text-white/40" /> : <Volume2 className="w-4 h-4 text-amber-300" />}
-      </button>
-
       {/* Main Table Screen */}
       {gameState ? (
         <GameTable
@@ -165,6 +155,8 @@ export default function App() {
           onOpenChat={handleOpenChat}
           unreadChatCount={unreadCount}
           myHandScore={myHandScore}
+          isMuted={isMuted}
+          onToggleMute={toggleMute}
           onProposeRestart={proposeRestart}
           onVoteRestart={voteRestart}
         />
@@ -174,11 +166,11 @@ export default function App() {
         </div>
       )}
 
-      {/* Floating Chat Message Toast (semi-transparent, auto-dismiss 5s, no icon, responsive width & strictly within bounds) */}
+      {/* Floating Chat Message Toast (semi-transparent 30%, auto-dismiss 5s, strictly within bounds) */}
       {chatToast && (
         <div
           onClick={handleOpenChat}
-          className="fixed top-16 left-4 right-4 max-w-xs mx-auto z-50 flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-black/75 border border-amber-500/50 text-white shadow-2xl backdrop-blur-md cursor-pointer hover:bg-black/85 transition-all animate-bounce"
+          className="fixed top-16 left-4 right-4 max-w-xs mx-auto z-50 flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-black/30 border border-amber-500/30 text-white shadow-2xl backdrop-blur-md cursor-pointer hover:bg-black/45 transition-all animate-bounce"
           title="Нажмите чтобы открыть чат"
         >
           <img

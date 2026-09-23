@@ -1,5 +1,5 @@
 import React from 'react';
-import { MessageSquare, RotateCcw } from 'lucide-react';
+import { MessageSquare, RotateCcw, Volume2, VolumeX } from 'lucide-react';
 import { Suit, SUIT_SYMBOLS, PenaltyState, PlayerPublic, RestartVote } from '@game-108/shared';
 
 interface ControlsProps {
@@ -18,6 +18,8 @@ interface ControlsProps {
   restartVote?: RestartVote | null;
   myPlayerId?: string;
   isSpectator?: boolean;
+  isMuted?: boolean;
+  onToggleMute?: () => void;
   onProposeRestart?: () => void;
   onVoteRestart?: () => void;
 }
@@ -38,6 +40,8 @@ export const Controls: React.FC<ControlsProps> = ({
   restartVote,
   myPlayerId,
   isSpectator,
+  isMuted,
+  onToggleMute,
   onProposeRestart,
   onVoteRestart
 }) => {
@@ -66,8 +70,8 @@ export const Controls: React.FC<ControlsProps> = ({
   }
 
   return (
-    <div className="relative z-20 flex items-center justify-between w-full px-3 py-1 pointer-events-auto">
-      {/* Bottom Left: Restart Button + 12 Rounds Box */}
+    <div className="relative z-20 flex items-end justify-between w-full px-3 py-1 pointer-events-auto">
+      {/* Bottom Left: Restart Button + Current Round Box */}
       <div className="flex flex-col items-center gap-1 shrink-0">
         {!isSpectator && onProposeRestart && (
           <button
@@ -94,19 +98,17 @@ export const Controls: React.FC<ControlsProps> = ({
           </button>
         )}
 
-        {/* 12 Rounds Box (Replaced "МАСТЬ" with "12 РАУНДОВ") */}
+        {/* Current Round & Suit Box (Shows current round without 12-round limit) */}
         <div className="flex flex-col items-center justify-center w-16 h-14 sm:w-20 sm:h-16 rounded-xl bg-black/60 border border-white/10 backdrop-blur-md shadow-lg p-1">
-          <span className="text-[8px] sm:text-[9px] font-extrabold uppercase tracking-wider text-amber-300">
-            12 раундов
+          <span className="text-[9px] sm:text-[10px] font-extrabold uppercase tracking-wider text-amber-300">
+            Раунд {roundNumber > 0 ? roundNumber : 1}
           </span>
           <div className={`text-xl sm:text-2xl leading-none ${isRedSuit ? 'text-rose-500' : 'text-slate-100'} drop-shadow my-0.5`}>
             {activeSuit ? SUIT_SYMBOLS[activeSuit] : '—'}
           </div>
-          <div className="pt-0.5 border-t border-white/10 w-full text-center">
-            <span className="text-[10px] font-bold text-amber-200/90 leading-none">
-              Р: {roundNumber > 0 ? `${roundNumber}/12` : '1/12'}
-            </span>
-          </div>
+          <span className="text-[8px] text-white/50 leading-none">
+            масть
+          </span>
         </div>
       </div>
 
@@ -145,8 +147,8 @@ export const Controls: React.FC<ControlsProps> = ({
           </div>
 
           {/* Nickname, Score & Real-time Hand Score */}
-          <div className="mt-0.5 flex flex-col items-center px-2 py-0.5 rounded-lg bg-black/80 border border-white/15 shadow-md min-w-[56px] max-w-[90px]">
-            <span className="text-[10px] sm:text-[11px] font-semibold text-white/95 truncate max-w-[80px] leading-tight">
+          <div className="mt-0.5 flex flex-col items-center px-2 py-0.5 rounded-lg bg-black/80 border border-white/15 shadow-md min-w-[60px] max-w-[95px]">
+            <span className="text-[10px] sm:text-[11px] font-semibold text-white/95 truncate max-w-[85px] leading-tight">
               {myPlayer.nickname}
             </span>
             <div className="flex items-center gap-1 leading-none mt-0.5">
@@ -155,44 +157,58 @@ export const Controls: React.FC<ControlsProps> = ({
               </span>
             </div>
             {myHandScore !== undefined && !myPlayer.isEliminated && (
-              <span className="text-[9px] font-bold text-emerald-400 leading-none mt-0.5" title="Сумма очков карт на руках">
-                в руке: {myHandScore}
+              <span className="text-[9px] font-semibold text-emerald-400 leading-tight mt-0.5 whitespace-nowrap" title="Сумма очков карт на руках">
+                в руке {myHandScore} оч.
               </span>
             )}
           </div>
         </div>
       )}
 
-      {/* Bottom Right: Chat & Main Action Button */}
-      <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-        {/* Chat Button */}
-        <button
-          onClick={onOpenChat}
-          className="relative flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-black/60 border border-amber-500/30 text-amber-200 backdrop-blur-md active:scale-95 hover:bg-black/80 transition-all shadow-xl"
-          title="Чат"
-        >
-          <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />
-          {unreadChatCount > 0 && (
-            <span className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-rose-600 text-white text-[9px] sm:text-[10px] font-black shadow">
-              {unreadChatCount}
-            </span>
-          )}
-        </button>
+      {/* Bottom Right: Chat & Main Action Button with Sound Toggle above */}
+      <div className="flex flex-col items-end gap-1 shrink-0">
+        {/* Sound toggle button positioned directly above the action button */}
+        {onToggleMute && (
+          <button
+            onClick={onToggleMute}
+            className="flex items-center gap-1 px-2.5 py-0.5 rounded-lg bg-black/60 border border-white/10 hover:border-amber-400/50 text-amber-200 text-[10px] font-semibold backdrop-blur-md active:scale-95 transition-all shadow"
+            title={isMuted ? 'Включить звук' : 'Выключить звук'}
+          >
+            {isMuted ? <VolumeX className="w-3.5 h-3.5 text-rose-400" /> : <Volume2 className="w-3.5 h-3.5 text-amber-300" />}
+            <span className="text-[9px] text-white/80">{isMuted ? 'Выкл' : 'Звук'}</span>
+          </button>
+        )}
 
-        {/* Action Button: Пас / Взять карту */}
-        <button
-          onClick={isActionEnabled ? actionHandler : undefined}
-          disabled={!isActionEnabled}
-          className={`
-            min-w-[90px] sm:min-w-[120px] h-10 sm:h-12 px-3 sm:px-5 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm tracking-wide transition-all shadow-xl
-            ${isActionEnabled
-              ? 'bg-gradient-to-b from-[#2a221b] to-[#16120e] text-amber-200 border border-amber-400/80 hover:brightness-110 active:scale-95 shadow-[0_0_15px_rgba(216,175,92,0.3)]'
-              : 'bg-black/40 text-white/30 border border-white/5 cursor-not-allowed'
-            }
-          `}
-        >
-          {actionLabel}
-        </button>
+        <div className="flex items-center gap-2 sm:gap-3">
+          {/* Chat Button */}
+          <button
+            onClick={onOpenChat}
+            className="relative flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-black/60 border border-amber-500/30 text-amber-200 backdrop-blur-md active:scale-95 hover:bg-black/80 transition-all shadow-xl"
+            title="Чат"
+          >
+            <MessageSquare className="w-4 h-4 sm:w-5 sm:h-5" />
+            {unreadChatCount > 0 && (
+              <span className="absolute -top-1 -right-1 flex items-center justify-center w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-rose-600 text-white text-[9px] sm:text-[10px] font-black shadow">
+                {unreadChatCount}
+              </span>
+            )}
+          </button>
+
+          {/* Action Button: Пас / Взять карту */}
+          <button
+            onClick={isActionEnabled ? actionHandler : undefined}
+            disabled={!isActionEnabled}
+            className={`
+              min-w-[90px] sm:min-w-[120px] h-10 sm:h-12 px-3 sm:px-5 rounded-xl sm:rounded-2xl font-bold text-xs sm:text-sm tracking-wide transition-all shadow-xl
+              ${isActionEnabled
+                ? 'bg-gradient-to-b from-[#2a221b] to-[#16120e] text-amber-200 border border-amber-400/80 hover:brightness-110 active:scale-95 shadow-[0_0_15px_rgba(216,175,92,0.3)]'
+                : 'bg-black/40 text-white/30 border border-white/5 cursor-not-allowed'
+              }
+            `}
+          >
+            {actionLabel}
+          </button>
+        </div>
       </div>
     </div>
   );
