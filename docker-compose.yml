@@ -1,0 +1,12 @@
+services:
+  game-108:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: game-108
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
