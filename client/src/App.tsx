@@ -8,6 +8,7 @@ import { QueenModal } from './components/Modals/QueenModal';
 import { EightModal } from './components/Modals/EightModal';
 import { RoundEndModal } from './components/Modals/RoundEndModal';
 import { GameEndModal } from './components/Modals/GameEndModal';
+import { StartingTurnModal } from './components/Modals/StartingTurnModal';
 import { ChatDrawer } from './components/Chat/ChatDrawer';
 
 export default function App() {
@@ -39,6 +40,10 @@ export default function App() {
   const [chatToast, setChatToast] = useState<{ nickname: string; avatar?: string; message: string } | null>(null);
   const chatToastTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevMessageCount = useRef<number>(0);
+
+  // Starting turn modal state
+  const [isStartingModalOpen, setIsStartingModalOpen] = useState(false);
+  const shownStartingRound = useRef<number | null>(null);
 
   // Audio reactivity refs
   const prevTopCardId = useRef<string | null>(null);
@@ -99,6 +104,18 @@ export default function App() {
       }
     }
   }, [messages, gameState?.myPlayerId, gameState?.players, isChatOpen, playSound]);
+
+  // Show starting turn modal on new round start
+  useEffect(() => {
+    if (
+      gameState?.startingInfo &&
+      gameState.phase === 'PLAYER_TURN' &&
+      shownStartingRound.current !== gameState.roundNumber
+    ) {
+      shownStartingRound.current = gameState.roundNumber;
+      setIsStartingModalOpen(true);
+    }
+  }, [gameState?.startingInfo, gameState?.phase, gameState?.roundNumber]);
 
   const handleOpenChat = () => {
     setIsChatOpen(true);
@@ -211,6 +228,8 @@ export default function App() {
           isHost={isHost}
           myPlayerId={gameState?.myPlayerId || ''}
           lobbyInfo={lobbyInfo}
+          unreadChatCount={unreadCount}
+          onOpenChat={handleOpenChat}
           onQuickJoin={(nick, av) => quickJoin(nick, av)}
           onStartGame={startGame}
         />
@@ -256,6 +275,14 @@ export default function App() {
           winner={gameState?.gameWinner}
           roundCount={gameState?.roundNumber || 0}
           onRestart={() => window.location.reload()}
+        />
+      )}
+
+      {/* Starting Turn / Starter Announcement Modal */}
+      {isStartingModalOpen && gameState?.startingInfo && (
+        <StartingTurnModal
+          startingInfo={gameState.startingInfo}
+          onClose={() => setIsStartingModalOpen(false)}
         />
       )}
 

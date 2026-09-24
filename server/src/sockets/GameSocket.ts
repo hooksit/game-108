@@ -46,6 +46,7 @@ export function registerSocketHandlers(
     socket.join(socket.id);
 
     callback({ success: true, roomId });
+    socket.emit('chat:history', session.chatMessages);
     broadcastSessionState(session);
   });
 
@@ -58,6 +59,7 @@ export function registerSocketHandlers(
     socket.join(socket.id);
 
     callback({ success: true, roomId });
+    socket.emit('chat:history', session.chatMessages);
     broadcastSessionState(session);
   });
 
@@ -75,6 +77,7 @@ export function registerSocketHandlers(
     socket.join(socket.id);
 
     callback({ success: true });
+    socket.emit('chat:history', res.session.chatMessages);
     broadcastSessionState(res.session);
   });
 
@@ -264,13 +267,16 @@ export function registerSocketHandlers(
     if (!session) return;
 
     let nick = 'Игрок';
+    let avatar = 'player';
     const player = session.players.find(p => p.id === socket.id);
     if (player) {
       nick = player.nickname;
+      avatar = player.avatar || 'player';
     } else {
       const spec = session.spectators.find(s => s.id === socket.id);
       if (spec) {
         nick = `${spec.nickname} (зритель)`;
+        avatar = spec.avatar || 'player';
       } else {
         return;
       }
@@ -279,12 +285,17 @@ export function registerSocketHandlers(
     const cleanMsg = message.trim().slice(0, 100);
     if (!cleanMsg) return;
 
-    io.to(session.id).emit('chat:message', {
+    const chatMsg = {
+      id: `${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
       senderId: socket.id,
       nickname: nick,
+      avatar,
       message: cleanMsg,
       timestamp: Date.now()
-    });
+    };
+
+    session.addChatMessage(chatMsg);
+    io.to(session.id).emit('chat:message', chatMsg);
   });
 
   // 11. Disconnect

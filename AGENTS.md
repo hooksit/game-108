@@ -52,10 +52,11 @@ Monorepo structure with npm workspaces:
   - **4 cards** per player when 3 or more players are active.
   - **6 cards** per player when down to 2 players head-to-head.
 - **Starting Card**: Placed from deck onto discard pile at round start:
-  - If starter card is **6**: First player draws 1 card, turn moves to next player.
-  - If starter card is **7**: First player draws 2 cards, turn moves to next player.
-  - If starter card is **Ace**: First player skips turn.
-  - If starter card is **♠K** (King of Spades): First player draws 5 cards, turn moves to next player.
+  - If starter card is **6**: First player can counter with another 6 (penalty becomes +2) or draw 1 card, then turn passes to next player.
+  - If starter card is **7**: First player can counter with another 7 (penalty becomes +4) or draw 2 cards, then turn passes to next player.
+  - If starter card is **Ace**: First player skips turn, turn moves clockwise to next player.
+  - If starter card is **♠K** (King of Spades): First player draws 5 cards from deck, turn moves to next player.
+  - At the start of the game/round, a random selection modal (`StartingTurnModal`) shows who starts and explains the starting rule.
 
 ### Card Values for Hand Score / Round End
 - **6, 7, 8, 9**: 0 points
@@ -125,6 +126,14 @@ Monorepo structure with npm workspaces:
    - The player who initiated the restart proposal becomes the room host with rights to click "Начать игру".
 8. **Disconnect Handling**:
    - When a player disconnects unexpectedly, their hand and hidden cards are returned and shuffled back into the deck, preserving deck count.
+9. **Lobby Chat & Message Persistence**:
+   - Chat is accessible directly from the waiting lobby screen. Messages are persisted in `session.chatMessages` on the server and synced on connect via `chat:history`, keeping message history throughout the entire game lifecycle.
+10. **Uniform Card Dimensions**:
+    - All 36 card face assets and card back (`BACK.png`) are uniformly sized to `(240, 360)` (standard 2:3 ratio) and rendered with `object-fill`, ensuring zero size differences between different ranks/suits.
+11. **Penalty Cards Visibility on Round End**:
+    - When a player ends a round by playing 6, 7, or ♠K, the exact cards drawn from the deck by the penalized opponent are displayed in `RoundEndModal` with visual card illustrations so all players see what cards were drawn.
+12. **Random Starter Selection Announcement**:
+    - At match start, a random player is selected and displayed in a stylish `StartingTurnModal` showing the starter's avatar, the starting card, and the starting effect rule.
 
 ---
 

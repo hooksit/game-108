@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { PlayerPublic, LobbyInfo } from '@game-108/shared';
-import { Users, Play, Crown } from 'lucide-react';
+import { Users, Play, Crown, MessageSquare } from 'lucide-react';
 
 interface LobbyModalProps {
   roomId?: string;
@@ -8,6 +8,8 @@ interface LobbyModalProps {
   isHost: boolean;
   myPlayerId: string;
   lobbyInfo?: LobbyInfo | null;
+  unreadChatCount?: number;
+  onOpenChat?: () => void;
   onQuickJoin: (nickname: string, avatar: string) => void;
   onStartGame: () => void;
 }
@@ -20,6 +22,8 @@ export const LobbyModal: React.FC<LobbyModalProps> = ({
   isHost,
   myPlayerId,
   lobbyInfo,
+  unreadChatCount = 0,
+  onOpenChat,
   onQuickJoin,
   onStartGame
 }) => {
@@ -49,9 +53,26 @@ export const LobbyModal: React.FC<LobbyModalProps> = ({
         <div className="w-full max-w-md p-6 sm:p-7 rounded-3xl bg-[#1c1511] border border-amber-500/40 shadow-2xl flex flex-col items-center text-white">
           <div className="w-12 h-1 bg-amber-500/40 rounded-full mb-3" />
           
-          <h2 className="text-2xl font-extrabold text-amber-200 tracking-wide mb-1">
-            Лобби игры
-          </h2>
+          <div className="flex items-center justify-between w-full mb-1 px-1">
+            <div className="w-8" />
+            <h2 className="text-2xl font-extrabold text-amber-200 tracking-wide text-center">
+              Лобби игры
+            </h2>
+            {onOpenChat ? (
+              <button
+                onClick={onOpenChat}
+                className="relative p-2 rounded-xl bg-black/60 border border-amber-500/30 text-amber-200 hover:bg-black/80 hover:border-amber-400 transition-all shadow active:scale-95"
+                title="Чат лобби"
+              >
+                <MessageSquare className="w-4 h-4 text-amber-300" />
+                {unreadChatCount > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center w-4 h-4 rounded-full bg-rose-600 text-white text-[9px] font-black shadow">
+                    {unreadChatCount}
+                  </span>
+                )}
+              </button>
+            ) : <div className="w-8" />}
+          </div>
           <p className="text-xs text-amber-200/60 mb-5">
             {canStart ? 'Все готово к началу партии' : 'Ожидаем подключения участников...'}
           </p>
@@ -132,6 +153,17 @@ export const LobbyModal: React.FC<LobbyModalProps> = ({
                 Запускает: {hostPlayer?.nickname || 'Создатель'}
               </span>
             </div>
+          )}
+
+          {/* Lobby Chat Button */}
+          {onOpenChat && (
+            <button
+              onClick={onOpenChat}
+              className="w-full mt-3 py-2.5 px-3 rounded-2xl bg-black/40 border border-white/10 hover:border-amber-400/50 text-amber-200 text-xs font-semibold flex items-center justify-center gap-2 transition-all active:scale-98 shadow"
+            >
+              <MessageSquare className="w-3.5 h-3.5 text-amber-300" />
+              <span>Чат комнаты {unreadChatCount > 0 ? `(${unreadChatCount})` : ''}</span>
+            </button>
           )}
         </div>
       </div>

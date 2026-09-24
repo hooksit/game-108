@@ -4,7 +4,7 @@ import os
 os.makedirs('client/public/assets/cards', exist_ok=True)
 os.makedirs('client/public/assets/avatars', exist_ok=True)
 
-# 1. Slice 36 cards from 1.png (transparent background sheet with dual corner ranks)
+# 1. Slice 36 cards from 1.png and resize each to uniform standard (240, 360) (2:3 poker card ratio)
 card_sheet = Image.open('1.png')
 
 rows = [
@@ -29,26 +29,29 @@ cols = [
 suits = ['HEARTS', 'DIAMONDS', 'CLUBS', 'SPADES']
 ranks = ['6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
 
+TARGET_SIZE = (240, 360)
+
 for r_idx, suit in enumerate(suits):
     y1, y2 = rows[r_idx]
     for c_idx, rank in enumerate(ranks):
         x1, x2 = cols[c_idx]
         card = card_sheet.crop((x1, y1, x2, y2))
+        card_resized = card.resize(TARGET_SIZE, Image.Resampling.LANCZOS)
         filename = f"{suit}_{rank}.png"
-        card.save(os.path.join('client/public/assets/cards', filename), 'PNG')
+        card_resized.save(os.path.join('client/public/assets/cards', filename), 'PNG')
 
-print("Saved all 36 updated cards from 1.png successfully.")
+print(f"Saved all 36 updated cards resized to {TARGET_SIZE} successfully.")
 
-# 2. Save new single card back from 2.png
+# 2. Save uniform card back from 2.png
 back_img = Image.open('2.png')
 back_bbox = back_img.getbbox() # (49, 33, 945, 1500)
-card_back = back_img.crop(back_bbox)
+card_back = back_img.crop(back_bbox).resize(TARGET_SIZE, Image.Resampling.LANCZOS)
 card_back.save('client/public/assets/cards/BACK.png', 'PNG')
 print(f"Saved updated card back BACK.png (size: {card_back.size})")
 
 # 3. Save new 3D deck stack image from 3.png
 deck_img = Image.open('3.png')
-deck_bbox = deck_img.getbbox() # (111, 53, 1042, 1409)
+deck_bbox = deck_img.getbbox()
 deck_crop = deck_img.crop(deck_bbox)
 deck_crop.save('client/public/assets/cards/DECK.png', 'PNG')
 print(f"Saved updated 3D deck DECK.png (size: {deck_crop.size})")

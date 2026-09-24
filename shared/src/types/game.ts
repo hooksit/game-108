@@ -47,13 +47,40 @@ export interface RoundResultPlayer {
   isWinner: boolean;
 }
 
+export interface RoundPenaltyInfo {
+  victimId: string;
+  victimNickname: string;
+  victimAvatar?: string;
+  cards: Card[];
+  attackCard: Card;
+}
+
 export interface RoundResult {
   roundNumber: number;
   winnerId: string;
   winnerNickname: string;
   winningCard?: Card;
+  penaltyInfo?: RoundPenaltyInfo;
   players: RoundResultPlayer[];
   nextStarterId: string;
+}
+
+export interface StartingTurnInfo {
+  starterId: string;
+  starterNickname: string;
+  starterAvatar: string;
+  startingCard: Card;
+  isFirstRound: boolean;
+  effectText: string;
+}
+
+export interface ChatMessage {
+  id?: string;
+  senderId: string;
+  nickname: string;
+  avatar?: string;
+  message: string;
+  timestamp: number;
 }
 
 export interface RestartVote {
@@ -89,4 +116,5 @@ export interface GameStateView {
   isSpectator?: boolean;
   spectatorCount?: number;
   restartVote?: RestartVote | null;
+  startingInfo?: StartingTurnInfo | null;
 }

@@ -12,6 +12,7 @@ export interface ChatMessage {
   id: string;
   senderId: string;
   nickname: string;
+  avatar?: string;
   message: string;
   timestamp: number;
 }
@@ -57,8 +58,12 @@ export function useGameSocket() {
       setTimeout(() => setErrorMessage(null), 4000);
     });
 
+    socket.on('chat:history', (history) => {
+      setMessages(history.map(m => ({ ...m, id: m.id || `${m.timestamp}_${Math.random()}` })));
+    });
+
     socket.on('chat:message', (msg) => {
-      setMessages((prev) => [...prev, { ...msg, id: `${msg.timestamp}_${Math.random()}` }]);
+      setMessages((prev) => [...prev, { ...msg, id: msg.id || `${msg.timestamp}_${Math.random()}` }]);
     });
 
     socket.on('action:notice', (n) => {

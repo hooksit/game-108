@@ -1,5 +1,5 @@
 import { Card, Suit } from './card.js';
-import { GameStateView } from './game.js';
+import { GameStateView, ChatMessage } from './game.js';
 
 // Client -> Server events
 export interface ClientToServerEvents {
@@ -44,7 +44,8 @@ export interface LobbyInfo {
 export interface ServerToClientEvents {
   'game:state': (state: GameStateView) => void;
   'game:error': (data: { message: string }) => void;
-  'chat:message': (data: { senderId: string; nickname: string; message: string; timestamp: number }) => void;
+  'chat:history': (messages: ChatMessage[]) => void;
+  'chat:message': (data: ChatMessage) => void;
   'action:notice': (data: { text: string; type?: 'info' | 'penalty' | 'win' | 'special' }) => void;
   'lobby:info': (data: LobbyInfo | null) => void;
 }

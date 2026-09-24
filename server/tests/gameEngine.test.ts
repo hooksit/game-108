@@ -77,6 +77,7 @@ describe('Game 108 Engine Comprehensive Test Suite', () => {
     session.currentTurnIndex = 0; // p1's turn
     session.discardPile = [{ id: 'SPADES_10', suit: 'SPADES', rank: '10' }];
     session.activeSuit = 'SPADES';
+    session.penalty = { type: null, amount: 0 };
     session.players[0].hand = [
       { id: 'SPADES_A', suit: 'SPADES', rank: 'A' },
       { id: 'HEARTS_6', suit: 'HEARTS', rank: '6' }
@@ -189,6 +190,7 @@ describe('Game 108 Engine Comprehensive Test Suite', () => {
     session.currentTurnIndex = 0;
     session.discardPile = [{ id: 'HEARTS_10', suit: 'HEARTS', rank: '10' }];
     session.activeSuit = 'HEARTS';
+    session.penalty = { type: null, amount: 0 };
     session.players[0].hand = [
       { id: 'HEARTS_8', suit: 'HEARTS', rank: '8' },
       { id: 'SPADES_6', suit: 'SPADES', rank: '6' }
@@ -261,6 +263,7 @@ describe('Game 108 Engine Comprehensive Test Suite', () => {
     session.currentTurnIndex = 0;
     session.discardPile = [{ id: 'HEARTS_10', suit: 'HEARTS', rank: '10' }];
     session.activeSuit = 'HEARTS';
+    session.penalty = { type: null, amount: 0 };
     session.players[0].hand = [{ id: 'HEARTS_Q', suit: 'HEARTS', rank: 'Q' }];
     session.players[1].hand = [{ id: 'HEARTS_6', suit: 'HEARTS', rank: '6' }];
     session.players[2].hand = [{ id: 'HEARTS_A', suit: 'HEARTS', rank: 'A' }];
@@ -278,6 +281,7 @@ describe('Game 108 Engine Comprehensive Test Suite', () => {
     session.currentTurnIndex = 0;
     session.discardPile = [{ id: 'SPADES_10', suit: 'SPADES', rank: '10' }];
     session.activeSuit = 'SPADES';
+    session.penalty = { type: null, amount: 0 };
     session.players[0].hand = [{ id: 'SPADES_Q', suit: 'SPADES', rank: 'Q' }];
     session.players[1].hand = [{ id: 'CLUBS_6', suit: 'CLUBS', rank: '6' }];
 
@@ -329,7 +333,7 @@ describe('Game 108 Engine Comprehensive Test Suite', () => {
     expect(starterIndex).toBe(2);
   });
 
-  it('16. Starter special card: 6 causes starter to draw 1 card and passes turn', () => {
+  it('16. Starter special card: 6 causes starter to counter or draw 1 card', () => {
     session.startMatch();
     session.currentTurnIndex = 0;
     session.players[0].hand = [{ id: 'HEARTS_10', suit: 'HEARTS', rank: '10' }];
@@ -337,10 +341,18 @@ describe('Game 108 Engine Comprehensive Test Suite', () => {
 
     const startCard: Card = { id: 'CLUBS_6', suit: 'CLUBS', rank: '6' };
     session.discardPile = [startCard];
-    (session as any).applyStartingCardEffect(startCard);
+    session.penalty = { type: null, amount: 0 };
+    (session as any).applyStartingCardEffect(startCard, session.players[0]);
 
-    // Starter p1 took 1 card
+    // Starter p1 receives penalty of 1 card, can counter or draw
+    expect(session.penalty.type).toBe('6');
+    expect(session.penalty.amount).toBe(1);
+    expect(session.currentTurnIndex).toBe(0);
+
+    // Starter draws 1 card
+    session.drawCard('p1');
     expect(session.players[0].hand.length).toBe(2);
+    expect(session.penalty.amount).toBe(0);
     // Turn advanced to p2
     expect(session.currentTurnIndex).toBe(1);
   });
@@ -378,6 +390,7 @@ describe('Game 108 Engine Comprehensive Test Suite', () => {
     session.currentTurnIndex = 0;
     session.discardPile = [{ id: 'DIAMONDS_8', suit: 'DIAMONDS', rank: '8' }];
     session.activeSuit = 'DIAMONDS';
+    session.penalty = { type: null, amount: 0 };
     session.players[0].hand = [
       { id: 'HEARTS_8', suit: 'HEARTS', rank: '8' },
       { id: 'CLUBS_Q', suit: 'CLUBS', rank: 'Q' },
@@ -436,6 +449,7 @@ describe('Game 108 Engine Comprehensive Test Suite', () => {
     session.currentTurnIndex = 0;
     session.discardPile = [{ id: 'CLUBS_9', suit: 'CLUBS', rank: '9' }];
     session.activeSuit = 'CLUBS';
+    session.penalty = { type: null, amount: 0 };
     session.players[0].hand = [{ id: 'CLUBS_6', suit: 'CLUBS', rank: '6' }];
 
     session.players[1].hand = [{ id: 'DIAMONDS_J', suit: 'DIAMONDS', rank: 'J' }]; // 2 points
@@ -447,6 +461,10 @@ describe('Game 108 Engine Comprehensive Test Suite', () => {
     // p2 gets 1 extra card (total 2 cards)
     expect(session.players[1].hand.length).toBe(2);
     expect(session.players[1].score).toBeGreaterThan(2);
+    // penaltyInfo is populated with victim cards
+    expect(session.roundResult?.penaltyInfo).toBeDefined();
+    expect(session.roundResult?.penaltyInfo?.victimId).toBe('p2');
+    expect(session.roundResult?.penaltyInfo?.cards.length).toBe(1);
   });
 
   it('23. Spectator mode: spectator receives sanitized state and cannot make moves', () => {
@@ -485,5 +503,47 @@ describe('Game 108 Engine Comprehensive Test Suite', () => {
     expect(session.players.find(p => p.id === 'p1')?.isHost).toBe(true);
     // Spectator is moved into players list for the next game!
     expect(session.players.some(p => p.id === 'spec1')).toBe(true);
+  });
+
+  it('25. Starter 7 can be countered with 7; Winning with ♠K records penaltyInfo with 5 cards', () => {
+    session.startMatch();
+    session.currentTurnIndex = 0;
+    session.players[0].hand = [
+      { id: 'HEARTS_7', suit: 'HEARTS', rank: '7' },
+      { id: 'HEARTS_10', suit: 'HEARTS', rank: '10' }
+    ];
+    session.players[1].hand = [
+      { id: 'CLUBS_9', suit: 'CLUBS', rank: '9' }
+    ];
+
+    const startCard: Card = { id: 'CLUBS_7', suit: 'CLUBS', rank: '7' };
+    session.discardPile = [startCard];
+    session.penalty = { type: null, amount: 0 };
+    (session as any).applyStartingCardEffect(startCard, session.players[0]);
+
+    // Starter p1 counters with HEARTS_7
+    expect(session.penalty.amount).toBe(2);
+    const counterRes = session.playCard('p1', 'HEARTS_7');
+    expect(counterRes.success).toBe(true);
+    // Penalty stacked to 4 cards, passed to p2
+    expect(session.penalty.amount).toBe(4);
+    expect(session.currentTurnIndex).toBe(1);
+
+    // Now test winning with ♠K
+    session.phase = 'PLAYER_TURN';
+    session.currentTurnIndex = 0;
+    session.players[0].hand = [{ id: 'SPADES_K', suit: 'SPADES', rank: 'K' }];
+    session.players[1].hand = [{ id: 'CLUBS_9', suit: 'CLUBS', rank: '9' }];
+    session.discardPile = [{ id: 'SPADES_9', suit: 'SPADES', rank: '9' }];
+    session.activeSuit = 'SPADES';
+    session.penalty = { type: null, amount: 0 };
+
+    const winRes = session.playCard('p1', 'SPADES_K');
+    expect(winRes.success).toBe(true);
+    expect(session.phase).toBe('ROUND_END');
+    expect(session.roundResult?.penaltyInfo).toBeDefined();
+    expect(session.roundResult?.penaltyInfo?.attackCard.id).toBe('SPADES_K');
+    expect(session.roundResult?.penaltyInfo?.victimId).toBe('p2');
+    expect(session.roundResult?.penaltyInfo?.cards.length).toBe(5);
   });
 });

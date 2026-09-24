@@ -8,6 +8,9 @@ import {
   PenaltyState,
   RoundResult,
   RoundResultPlayer,
+  RoundPenaltyInfo,
+  StartingTurnInfo,
+  ChatMessage,
   GameStateView,
   MAX_PLAYERS,
   MIN_PLAYERS,
@@ -39,6 +42,8 @@ export class GameSession {
   public roundResult?: RoundResult;
   public gameWinner?: PlayerPublic;
   public lastActionMessage?: string;
+  public startingInfo: StartingTurnInfo | null = null;
+  public chatMessages: ChatMessage[] = [];
 
   constructor(id: string) {
     this.id = id;
@@ -304,15 +309,18 @@ export class GameSession {
     }
 
     // Determine starter
+    let initialStarter: PlayerPrivate;
     if (isFirstRound) {
       // First round: random active player
       const randActive = activePlayers[Math.floor(Math.random() * activePlayers.length)];
       this.currentTurnIndex = randActive.seatIndex;
+      initialStarter = randActive;
     } else {
       // Subsequent rounds: find player with max score among active players.
       // Starter is next active player clockwise after max scorer.
       const highestScorer = [...activePlayers].sort((a, b) => b.score - a.score)[0];
       this.currentTurnIndex = this.getNextActiveSeatIndex(highestScorer.seatIndex);
+      initialStarter = this.players[this.currentTurnIndex];
     }
 
     // Draw first card from deck to discard pile
@@ -326,49 +334,65 @@ export class GameSession {
     this.activeSuit = startCard.suit;
 
     this.phase = 'PLAYER_TURN';
-    this.applyStartingCardEffect(startCard);
+    this.applyStartingCardEffect(startCard, initialStarter, isFirstRound);
   }
 
-  private applyStartingCardEffect(card: Card): void {
-    const starter = this.getCurrentPlayer();
-    if (!starter) return;
+  public applyStartingCardEffect(card: Card, starter?: PlayerPrivate, isFirstRound: boolean = false): void {
+    const effectiveStarter = starter || this.getCurrentPlayer();
+    if (!effectiveStarter) return;
 
-    if (card.rank === '6') {
-      // Starting player draws 1 card, passes to next
-      const drawn = this.drawFromDeckSafe(1);
-      starter.hand.push(...drawn);
-      starter.cardCount = starter.hand.length;
-      this.lastActionMessage = `Стартовая 6: ${starter.nickname} берет 1 карту.`;
-      this.advanceTurn();
-    } else if (card.rank === '7') {
-      // Starting player draws 2 cards, passes to next
-      const drawn = this.drawFromDeckSafe(2);
-      starter.hand.push(...drawn);
-      starter.cardCount = starter.hand.length;
-      this.lastActionMessage = `Стартовая 7: ${starter.nickname} берет 2 карты.`;
-      this.advanceTurn();
-    } else if (card.rank === 'A') {
-      // Starting player skips turn
-      this.lastActionMessage = `Стартовый Туз: ${starter.nickname} пропускает ход.`;
-      this.advanceTurn();
-    } else if (card.suit === 'SPADES' && card.rank === 'K') {
-      // Starting player draws 5 cards, passes to next
-      const drawn = this.drawFromDeckSafe(5);
-      starter.hand.push(...drawn);
-      starter.cardCount = starter.hand.length;
-      this.lastActionMessage = `Стартовый ♠K: ${starter.nickname} берет 5 карт.`;
-      this.advanceTurn();
-    } else if (card.rank === '8') {
-      // Starting player handles 8 mechanic
-      this.lastActionMessage = `Стартовая 8: ${starter.nickname} должен ходить по масти ${this.activeSuit}.`;
-      // If starter has matching card, they can play or draw. If not, eight draw
-    } else if (card.rank === 'Q') {
-      // Queen sits on top, must match printed suit or another Queen
+    let effectText = '';
+
+    if (card.rank === 'A') {
+      // Starting player skips turn! Advance to next active player
+      this.advanceTurn(1);
+      const nextPlayer = this.getCurrentPlayer();
+      effectText = `Стартовый Туз: ${effectiveStarter.nickname} пропускает ход! Ходит ${nextPlayer?.nickname || ''}.`;
+      this.lastActionMessage = effectText;
+    } else if (card.rank === '6') {
+      // Starting player has 1 card penalty to counter with 6 or draw 1 card
+      this.penalty.type = '6';
+      this.penalty.amount = 1;
       this.activeSuit = card.suit;
-      this.lastActionMessage = `Стартовая Дама: ход по масти ${this.activeSuit} или любая Дама.`;
+      effectText = `Стартовая 6: ${effectiveStarter.nickname} должен перебить шестёркой или взять 1 карту из колоды.`;
+      this.lastActionMessage = effectText;
+    } else if (card.rank === '7') {
+      // Starting player has 2 cards penalty to counter with 7 or draw 2 cards
+      this.penalty.type = '7';
+      this.penalty.amount = 2;
+      this.activeSuit = card.suit;
+      effectText = `Стартовая 7: ${effectiveStarter.nickname} должен перебить семёркой или взять 2 карты из колоды.`;
+      this.lastActionMessage = effectText;
+    } else if (card.suit === 'SPADES' && card.rank === 'K') {
+      // Starting player draws 5 cards, turn passes to next
+      const drawn = this.drawFromDeckSafe(5);
+      effectiveStarter.hand.push(...drawn);
+      effectiveStarter.cardCount = effectiveStarter.hand.length;
+      this.advanceTurn(1);
+      const nextPlayer = this.getCurrentPlayer();
+      effectText = `Стартовый ♠K: ${effectiveStarter.nickname} берет 5 карт из колоды! Ходит ${nextPlayer?.nickname || ''}.`;
+      this.lastActionMessage = effectText;
+    } else if (card.rank === '8') {
+      this.activeSuit = card.suit;
+      effectText = `Стартовая 8: ${effectiveStarter.nickname} ходит по масти ${this.activeSuit} (или другой 8/Дамой).`;
+      this.lastActionMessage = effectText;
+    } else if (card.rank === 'Q') {
+      this.activeSuit = card.suit;
+      effectText = `Стартовая Дама: ход по масти ${this.activeSuit} или любая Дама.`;
+      this.lastActionMessage = effectText;
     } else {
-      this.lastActionMessage = `Начало раунда ${this.roundNumber}. Первый ход: ${starter.nickname}.`;
+      effectText = `Первый ход делает ${effectiveStarter.nickname}.`;
+      this.lastActionMessage = `Начало раунда ${this.roundNumber}. ${effectText}`;
     }
+
+    this.startingInfo = {
+      starterId: effectiveStarter.id,
+      starterNickname: effectiveStarter.nickname,
+      starterAvatar: effectiveStarter.avatar,
+      startingCard: card,
+      isFirstRound,
+      effectText
+    };
   }
 
   // --- Turn Actions ---
@@ -705,13 +729,25 @@ export class GameSession {
       attackPenalty = Math.max(1, this.penalty.amount);
     }
 
+    let penaltyInfo: RoundPenaltyInfo | undefined = undefined;
+
     if (attackPenalty > 0) {
       const victim = this.getPlayerAtNextActiveSeat(winner.seatIndex);
       if (victim && victim.id !== winner.id) {
         const extraCards = this.drawFromDeckSafe(attackPenalty);
         victim.hand.push(...extraCards);
         victim.cardCount = victim.hand.length;
-        this.lastActionMessage = `${winner.nickname} завершил раунд картой ${winningCard.rank}! ${victim.nickname} получает +${attackPenalty} штрафных карт из колоды.`;
+        const attackName = winningCard.suit === 'SPADES' && winningCard.rank === 'K'
+          ? 'Пиковым Королём (♠K)'
+          : `картой ${winningCard.rank}`;
+        this.lastActionMessage = `${winner.nickname} завершил раунд ${attackName}! ${victim.nickname} получает +${attackPenalty} штрафных карт из колоды.`;
+        penaltyInfo = {
+          victimId: victim.id,
+          victimNickname: victim.nickname,
+          victimAvatar: victim.avatar,
+          cards: extraCards,
+          attackCard: winningCard
+        };
       }
     }
     this.penalty = { type: null, amount: 0 };
@@ -790,12 +826,20 @@ export class GameSession {
       winnerId: winner.id,
       winnerNickname: winner.nickname,
       winningCard,
+      penaltyInfo,
       players: roundPlayers,
       nextStarterId
     };
 
     this.lastActionMessage = `Победитель раунда: ${winner.nickname}!`;
     this.checkGameCompletion();
+  }
+
+  public addChatMessage(msg: ChatMessage): void {
+    this.chatMessages.push(msg);
+    if (this.chatMessages.length > 200) {
+      this.chatMessages.shift();
+    }
   }
 
   public checkGameCompletion(): boolean {
@@ -930,7 +974,8 @@ export class GameSession {
       gameWinner: this.gameWinner,
       isSpectator,
       spectatorCount,
-      restartVote: this.restartVote
+      restartVote: this.restartVote,
+      startingInfo: this.startingInfo
     };
   }
 }

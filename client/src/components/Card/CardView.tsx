@@ -23,9 +23,9 @@ export const CardView: React.FC<CardViewProps> = ({
   size = 'md'
 }) => {
   const sizeClasses = {
-    sm: 'w-12 h-18 sm:w-14 sm:h-20',
-    md: 'w-16 h-24 sm:w-20 sm:h-30 md:w-24 md:h-36',
-    lg: 'w-24 h-36 sm:w-28 sm:h-42 md:w-32 md:h-48'
+    sm: 'w-12 h-18 sm:w-14 sm:h-[84px] aspect-[2/3]',
+    md: 'w-16 h-24 sm:w-20 sm:h-30 md:w-24 md:h-36 aspect-[2/3]',
+    lg: 'w-24 h-36 sm:w-28 sm:h-42 md:w-32 md:h-48 aspect-[2/3]'
   };
 
   const imageSrc = isBack || !card
@@ -49,7 +49,7 @@ export const CardView: React.FC<CardViewProps> = ({
       <img
         src={imageSrc}
         alt={card ? `${card.rank} ${card.suit}` : 'Рубашка'}
-        className="w-full h-full object-contain pointer-events-none drop-shadow-sm"
+        className="w-full h-full object-fill pointer-events-none drop-shadow-sm"
         draggable={false}
       />
       {isPlayable && (

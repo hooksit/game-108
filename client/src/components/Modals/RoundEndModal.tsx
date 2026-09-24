@@ -1,6 +1,7 @@
 import React from 'react';
 import { RoundResult } from '@game-108/shared';
-import { Trophy, ArrowRight } from 'lucide-react';
+import { Trophy, ArrowRight, AlertCircle } from 'lucide-react';
+import { CardView } from '../Card/CardView';
 
 interface RoundEndModalProps {
   result?: RoundResult;
@@ -17,7 +18,7 @@ export const RoundEndModal: React.FC<RoundEndModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
-      <div className="w-full max-w-md p-6 rounded-3xl bg-[#1d1611] border border-amber-500/50 shadow-2xl flex flex-col items-center text-white text-center">
+      <div className="w-full max-w-md max-h-[90vh] overflow-y-auto p-6 rounded-3xl bg-[#1d1611] border border-amber-500/50 shadow-2xl flex flex-col items-center text-white text-center scrollbar-thin">
         {/* Trophy Header */}
         <div className="w-14 h-14 rounded-full bg-amber-500/20 border border-amber-400 flex items-center justify-center text-amber-300 mb-3 shadow-[0_0_20px_rgba(216,175,92,0.4)]">
           <Trophy className="w-7 h-7" />
@@ -26,9 +27,37 @@ export const RoundEndModal: React.FC<RoundEndModalProps> = ({
         <h3 className="text-2xl font-black text-amber-200 tracking-wide">
           Раунд {result.roundNumber} завершён!
         </h3>
-        <p className="text-sm text-white/80 mt-1 mb-5">
+        <p className="text-sm text-white/80 mt-1 mb-4">
           Победитель раунда: <span className="font-bold text-amber-300">{result.winnerNickname}</span>
         </p>
+
+        {/* Penalty Attack Information Block (6, 7, ♠K) */}
+        {result.penaltyInfo && result.penaltyInfo.cards.length > 0 && (
+          <div className="w-full mb-4 p-3.5 rounded-2xl bg-rose-950/40 border border-rose-500/50 shadow-inner flex flex-col items-center">
+            <div className="flex items-center gap-1.5 text-rose-300 font-bold text-xs mb-2 flex-wrap justify-center">
+              <AlertCircle className="w-4 h-4 text-rose-400 shrink-0" />
+              <span>
+                Штраф за сброс{' '}
+                <strong className="text-amber-300">
+                  {result.penaltyInfo.attackCard.suit === 'SPADES' && result.penaltyInfo.attackCard.rank === 'K'
+                    ? '♠ Пикового Короля'
+                    : result.penaltyInfo.attackCard.rank}
+                </strong>
+                :
+              </span>
+              <span className="text-white font-extrabold">{result.penaltyInfo.victimNickname}</span>
+              <span className="text-rose-400">получил (+{result.penaltyInfo.cards.length} карт из колоды):</span>
+            </div>
+
+            <div className="flex items-center justify-center gap-1.5 flex-wrap py-1">
+              {result.penaltyInfo.cards.map((c) => (
+                <div key={c.id} className="transform hover:scale-105 transition-transform">
+                  <CardView card={c} size="sm" />
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Players Score Table */}
         <div className="w-full rounded-2xl bg-black/50 border border-white/10 overflow-hidden mb-6">

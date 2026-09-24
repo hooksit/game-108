@@ -36,7 +36,7 @@ export const ChatDrawer: React.FC<ChatDrawerProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex justify-end bg-black/60 backdrop-blur-sm animate-fade-in">
+    <div className="fixed inset-0 z-[70] flex justify-end bg-black/60 backdrop-blur-sm animate-fade-in">
       <div className="w-full max-w-xs sm:max-w-sm h-full bg-[#1b1511] border-l border-amber-500/30 flex flex-col shadow-2xl">
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-white/10 text-white">
@@ -63,21 +63,32 @@ export const ChatDrawer: React.FC<ChatDrawerProps> = ({
               return (
                 <div
                   key={m.id}
-                  className={`flex flex-col ${isMe ? 'items-end' : 'items-start'}`}
+                  className={`flex items-end gap-2 ${isMe ? 'justify-end' : 'justify-start'}`}
                 >
-                  <span className="text-[10px] text-amber-400/80 mb-0.5 px-1 font-semibold">
-                    {isMe ? 'Вы' : m.nickname}
-                  </span>
+                  {!isMe && (
+                    <img
+                      src={`/assets/avatars/${m.avatar || 'player'}.png`}
+                      alt={m.nickname}
+                      className="w-6 h-6 rounded-full border border-amber-400/40 object-cover shrink-0 mb-1"
+                    />
+                  )}
                   <div
-                    className={`
-                      px-3 py-2 rounded-2xl text-xs max-w-[85%] break-words
-                      ${isMe
-                        ? 'bg-amber-600/30 text-amber-100 border border-amber-500/40 rounded-br-none'
-                        : 'bg-black/40 text-white/90 border border-white/10 rounded-bl-none'
-                      }
-                    `}
+                    className={`flex flex-col ${isMe ? 'items-end' : 'items-start'} max-w-[80%]`}
                   >
-                    {m.message}
+                    <span className="text-[10px] text-amber-400/80 mb-0.5 px-1 font-semibold">
+                      {isMe ? 'Вы' : m.nickname}
+                    </span>
+                    <div
+                      className={`
+                        px-3 py-2 rounded-2xl text-xs break-words
+                        ${isMe
+                          ? 'bg-amber-600/30 text-amber-100 border border-amber-500/40 rounded-br-none'
+                          : 'bg-black/40 text-white/90 border border-white/10 rounded-bl-none'
+                        }
+                      `}
+                    >
+                      {m.message}
+                    </div>
                   </div>
                 </div>
               );
