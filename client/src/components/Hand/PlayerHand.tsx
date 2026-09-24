@@ -76,22 +76,49 @@ export const PlayerHand: React.FC<PlayerHandProps> = ({
           const offsetIndex = index - mid;
 
           // Rotation angle and lateral offset
-          const angle = totalCards > 1 ? offsetIndex * Math.min(6, 45 / totalCards) : 0;
-          const translateX = offsetIndex * Math.min(38, Math.max(22, 260 / totalCards));
-          const translateY = Math.abs(offsetIndex) * 3;
+          const baseAngle = totalCards > 1 ? offsetIndex * Math.min(6, 45 / totalCards) : 0;
+          const baseTranslateX = offsetIndex * Math.min(38, Math.max(22, 260 / totalCards));
+          const baseTranslateY = Math.abs(offsetIndex) * 3;
 
-          // Elevated position if selected
-          const effectiveTranslateY = isSelected ? translateY - 34 : translateY;
-          const effectiveScale = isSelected ? 1.12 : 1;
-          const zIndex = isSelected ? 65 : index + 1;
+          // Dynamic card parting & layering when a card is selected
+          // Ensures the card to the right is NEVER covered and its suit & rank remain 100% visible
+          let effectiveTranslateX = baseTranslateX;
+          let effectiveTranslateY = baseTranslateY;
+          let effectiveAngle = baseAngle;
+          let effectiveScale = 1;
+          let zIndex = index + 1;
+
+          if (selectedId) {
+            const selectedIndex = hand.findIndex((c) => c.id === selectedId);
+            if (selectedIndex !== -1) {
+              const partDistance = totalCards > 7 ? 30 : 36;
+              if (index < selectedIndex) {
+                // Cards to the left shift slightly left
+                effectiveTranslateX = baseTranslateX - 10;
+                zIndex = index + 1;
+              } else if (index === selectedIndex) {
+                // Selected card lifts high out of the fan and straightens up
+                effectiveTranslateX = baseTranslateX;
+                effectiveTranslateY = baseTranslateY - 40;
+                effectiveScale = 1.05;
+                effectiveAngle = 0; // Stand straight so corners don't lean into neighbor
+                zIndex = 25;
+              } else {
+                // All cards to the right shift right by 36px to expose their rank & suit!
+                // AND have higher z-index (30 + index) so they sit IN FRONT of the selected card
+                effectiveTranslateX = baseTranslateX + partDistance;
+                zIndex = 30 + index;
+              }
+            }
+          }
 
           return (
             <div
               key={card.id}
               id={`hand-card-${card.id}`}
-              className="absolute bottom-0 transition-transform duration-200"
+              className="absolute bottom-0 transition-all duration-200"
               style={{
-                transform: `translateX(${translateX}px) translateY(${effectiveTranslateY}px) rotate(${angle}deg) scale(${effectiveScale})`,
+                transform: `translateX(${effectiveTranslateX}px) translateY(${effectiveTranslateY}px) rotate(${effectiveAngle}deg) scale(${effectiveScale})`,
                 zIndex
               }}
             >

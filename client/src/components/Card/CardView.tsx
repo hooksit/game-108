@@ -40,7 +40,7 @@ export const CardView: React.FC<CardViewProps> = ({
         relative select-none transition-all duration-200 rounded-lg overflow-hidden
         ${sizeClasses[size]}
         ${isPlayable ? 'card-playable cursor-pointer hover:shadow-2xl' : ''}
-        ${isSelected ? 'ring-4 ring-amber-400 -translate-y-4' : ''}
+        ${isSelected ? 'ring-4 ring-amber-400 shadow-[0_0_18px_rgba(245,158,11,0.8)]' : ''}
         ${!isBack && !isPlayable && card ? 'hover:brightness-95' : ''}
         shadow-[0_4px_12px_rgba(0,0,0,0.5)]
         ${className}

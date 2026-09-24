@@ -24,7 +24,7 @@ interface GameTableProps {
 const getOpponentPositionClass = (opponentIndex: number, totalOpponents: number): string => {
   switch (totalOpponents) {
     case 1: // 2 players total: Top center placed under top edge toast
-      return 'top-20 sm:top-24 left-1/2 -translate-x-1/2';
+      return 'top-16 sm:top-18 left-1/2 -translate-x-1/2';
 
     case 2: // 3 players total: Upper Left & Upper Right placed safely below toast
       return opponentIndex === 0
@@ -33,21 +33,21 @@ const getOpponentPositionClass = (opponentIndex: number, totalOpponents: number)
 
     case 3: // 4 players total: Mid Left, Top Center, Upper Right
       if (opponentIndex === 0) return 'top-[39%] left-3 sm:left-5 -translate-y-1/2';
-      if (opponentIndex === 1) return 'top-20 sm:top-24 left-1/2 -translate-x-1/2';
+      if (opponentIndex === 1) return 'top-16 sm:top-18 left-1/2 -translate-x-1/2';
       return 'top-[27%] right-3 sm:right-5 -translate-y-1/2';
 
     case 4: // 5 players total: Lower Left, Upper Left, Top Center, Upper Right
       if (opponentIndex === 0) return 'top-[49%] left-2 sm:left-4 -translate-y-1/2';
       if (opponentIndex === 1) return 'top-[26%] left-3 sm:left-5 -translate-y-1/2';
-      if (opponentIndex === 2) return 'top-20 sm:top-24 left-1/2 -translate-x-1/2';
+      if (opponentIndex === 2) return 'top-16 sm:top-18 left-1/2 -translate-x-1/2';
       return 'top-[26%] right-3 sm:right-5 -translate-y-1/2';
 
     case 5: // 6 players total: Lower Left, Upper Left, Top Center, Upper Right, Mid Right
     default:
       if (opponentIndex === 0) return 'top-[53%] left-2 sm:left-3 -translate-y-1/2';
       if (opponentIndex === 1) return 'top-[27%] left-3 sm:left-4 -translate-y-1/2';
-      if (opponentIndex === 2) return 'top-20 sm:top-24 left-1/2 -translate-x-1/2';
-      if (opponentIndex === 3) return 'top-[26%] right-3 sm:right-4 -translate-y-1/2';
+      if (opponentIndex === 2) return 'top-16 sm:top-18 left-1/2 -translate-x-1/2';
+      return 'top-[26%] right-3 sm:right-4 -translate-y-1/2';
       return 'top-[45%] right-2 sm:right-3 -translate-y-1/2';
   }
 };
@@ -103,7 +103,7 @@ export const GameTable: React.FC<GameTableProps> = ({
     durationMs = 380
   ) => {
     const fallbackStart = { x: window.innerWidth * 0.5, y: window.innerHeight * 0.85 };
-    const fallbackEnd = { x: window.innerWidth * 0.5, y: window.innerHeight * 0.44 };
+    const fallbackEnd = { x: window.innerWidth * 0.5, y: window.innerHeight * 0.48 };
 
     const startRect = startEl ? startEl.getBoundingClientRect() : {
       left: fallbackStart.x - 40,
@@ -159,7 +159,7 @@ export const GameTable: React.FC<GameTableProps> = ({
       ? document.getElementById(`player-seat-${targetPlayerId}`)
       : null;
 
-    const fallbackDeck = { x: window.innerWidth * 0.68, y: window.innerHeight * 0.44 };
+    const fallbackDeck = { x: window.innerWidth * 0.68, y: window.innerHeight * 0.48 };
     const fallbackTarget = isLocal
       ? { x: window.innerWidth * 0.5, y: window.innerHeight * 0.85 }
       : { x: window.innerWidth * 0.5, y: window.innerHeight * 0.25 };
@@ -317,7 +317,7 @@ export const GameTable: React.FC<GameTableProps> = ({
         })}
 
         {/* Center Discard Zone and Draw Deck */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-auto">
+        <div className="absolute inset-0 flex items-center justify-center pointer-events-auto translate-y-8 sm:translate-y-10">
           <DiscardZone
             discardPileTop={state.discardPileTop}
             topCard={state.topCard}
