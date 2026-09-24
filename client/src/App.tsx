@@ -62,12 +62,31 @@ export default function App() {
   useEffect(() => {
     if (!gameState) return;
 
-    // 1. Play card sound when top card changes (card played onto table)
-    if (gameState.topCard && gameState.topCard.id !== prevTopCardId.current) {
-      if (prevTopCardId.current !== null) {
+    // Detect state changes BEFORE mutating any refs
+    const isCardPlayed = Boolean(
+      gameState.topCard &&
+      prevTopCardId.current !== null &&
+      gameState.topCard.id !== prevTopCardId.current
+    );
+    const isCardDrawn = Boolean(
+      prevDeckCount.current !== null &&
+      gameState.deckCount < prevDeckCount.current
+    );
+    const isTurnChanged = Boolean(
+      prevTurnPlayerId.current !== null &&
+      gameState.currentTurnPlayerId !== prevTurnPlayerId.current
+    );
+    const wasOpponentTurn = Boolean(
+      prevTurnPlayerId.current !== null &&
+      prevTurnPlayerId.current !== gameState.myPlayerId
+    );
+
+    // 1. Play card sound when top card changes (opponent played a card onto table)
+    // (Local player plays sound immediately on action in handlePlayCard/eightSelect)
+    if (isCardPlayed) {
+      if (wasOpponentTurn) {
         playSound('play'); // Положил карту на стол
       }
-      prevTopCardId.current = gameState.topCard.id;
     }
 
     // 2. Victory sound when round or game ends; dealing sound when starting match/round
@@ -82,38 +101,38 @@ export default function App() {
           playSound('deal'); // начало игры раздача карт
         }
       }
-      prevPhase.current = gameState.phase;
     }
 
-    // 3. Penalty sound when penalty increases
-    if (gameState.penalty.amount > prevPenalty.current) {
-      playSound('penalty');
-    }
-    prevPenalty.current = gameState.penalty.amount;
+    // 3. Penalty sound: Removed per user request ("убери звук штрафа")
 
-    // 4. Opponent or turn card draw sound (deck count decreased without top card change)
-    if (prevDeckCount.current !== null && gameState.deckCount < prevDeckCount.current) {
+    // 4. Opponent card draw sound (deck count decreased without top card change)
+    if (isCardDrawn && !isCardPlayed) {
       if (gameState.phase === 'PLAYER_TURN' || gameState.phase === 'EIGHT_DRAW') {
-        if (gameState.currentTurnPlayerId !== gameState.myPlayerId) {
+        if (wasOpponentTurn) {
           playSound('draw'); // взял карту из колоды
         }
       }
     }
-    prevDeckCount.current = gameState.deckCount;
 
     // 5. Opponent pass sound (turn changed, no card played, deck count unchanged)
+    // Strictly requires: NO card was played, NO card was drawn, turn changed, previous turn was opponent's,
+    // and both previous and current phase are active PLAYER_TURN.
     if (
-      prevTurnPlayerId.current !== null &&
-      gameState.currentTurnPlayerId !== prevTurnPlayerId.current &&
+      !isCardPlayed &&
+      !isCardDrawn &&
+      isTurnChanged &&
+      wasOpponentTurn &&
       gameState.phase === 'PLAYER_TURN' &&
       prevPhase.current === 'PLAYER_TURN'
     ) {
-      if (prevTurnPlayerId.current !== gameState.myPlayerId) {
-        if (gameState.topCard?.id === prevTopCardId.current) {
-          playSound('pass'); // Постучали колодой - пас
-        }
-      }
+      playSound('pass'); // Постучали колодой - пас
     }
+
+    // Update all tracking refs at the VERY END of the cycle
+    prevTopCardId.current = gameState.topCard?.id || null;
+    prevPhase.current = gameState.phase;
+    prevPenalty.current = gameState.penalty.amount;
+    prevDeckCount.current = gameState.deckCount;
     prevTurnPlayerId.current = gameState.currentTurnPlayerId;
   }, [gameState, playSound]);
 
@@ -175,11 +194,7 @@ export default function App() {
   };
 
   const handleDrawCard = () => {
-    if (gameState?.penalty.amount && gameState.penalty.amount > 0) {
-      playSound('penalty');
-    } else {
-      playSound('draw');
-    }
+    playSound('draw');
     drawCard();
   };
 
@@ -227,14 +242,14 @@ export default function App() {
 
       {/* Floating Error Notification */}
       {errorMessage && (
-        <div className="fixed top-14 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-2xl bg-rose-900/90 border border-rose-500 text-white text-xs font-bold shadow-2xl backdrop-blur-md animate-bounce">
+        <div className="fixed top-1.5 sm:top-2 left-1/2 -translate-x-1/2 z-[95] px-4 py-2 rounded-2xl bg-rose-900/90 border border-rose-500 text-white text-xs font-bold shadow-2xl backdrop-blur-md animate-fade-in">
           {errorMessage}
         </div>
       )}
 
       {/* Action Notice (e.g. 107->53) */}
       {notice && (
-        <div className="fixed top-24 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-2xl bg-amber-950/90 border border-amber-400 text-amber-200 text-sm font-extrabold shadow-2xl backdrop-blur-md animate-scale-in">
+        <div className="fixed top-28 sm:top-32 left-1/2 -translate-x-1/2 z-50 px-5 py-2.5 rounded-2xl bg-amber-950/90 border border-amber-400 text-amber-200 text-sm font-extrabold shadow-2xl backdrop-blur-md animate-scale-in">
           {notice.text}
         </div>
       )}
@@ -305,11 +320,11 @@ export default function App() {
         />
       )}
 
-      {/* Floating Chat Message Toast (top-2 closer to top edge, compact, z-[90] visible in lobby and game without overlapping players) */}
+      {/* Floating Chat Message Toast (top-1.5 closer to top edge, compact, z-[90] visible in lobby and game without overlapping players) */}
       {chatToast && (
         <div
           onClick={handleOpenChat}
-          className="fixed top-2 sm:top-3 left-3 right-3 max-w-[280px] sm:max-w-xs mx-auto z-[90] flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-black/60 border border-amber-500/40 text-white shadow-2xl backdrop-blur-md cursor-pointer hover:bg-black/75 transition-all animate-bounce"
+          className="fixed top-1.5 sm:top-2 left-3 right-3 max-w-[280px] sm:max-w-xs mx-auto z-[90] flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-black/60 border border-amber-500/40 text-white shadow-2xl backdrop-blur-md cursor-pointer hover:bg-black/75 transition-all animate-fade-in"
           title="Нажмите чтобы открыть чат"
         >
           <img

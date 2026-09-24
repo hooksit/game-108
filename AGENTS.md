@@ -108,8 +108,8 @@ Monorepo structure with npm workspaces:
    - Avoids top-left collision with opponent avatars in multi-player setups.
 3. **Chat Toast Notifications & Top-Edge Positioning**:
    - Compact semi-transparent style (`bg-black/60 backdrop-blur-md border border-amber-500/40 text-white`, `z-[90]`).
-   - Positioned close to the top edge (`top-2 sm:top-3 left-3 right-3 max-w-[280px] sm:max-w-xs mx-auto`), auto-dismisses after 5 seconds.
-   - Opponents and their card fans are placed safely BELOW the top edge toast area (`top-[27%]` for 2 opponents, `top-20` for top-center, etc.), ensuring floating toasts never overlap opponent cards or avatars.
+   - Positioned close to the top edge (`top-1.5 sm:top-2 left-3 right-3 max-w-[280px] sm:max-w-xs mx-auto animate-fade-in`), auto-dismisses after 5 seconds.
+   - Top player lowered safely to `top-[84px] sm:top-24`, and side opponents placed at `top-[29%]`, ensuring floating chat toasts and error notifications never overlap opponent cards or avatars.
    - Rendered with `z-[90]`, visible in both the lobby and during active gameplay.
 4. **Player Hand Score Display**:
    - Placed directly inside the local player's badge under their avatar in the bottom bar: `в руке 12 оч.`.
@@ -144,6 +144,8 @@ Monorepo structure with npm workspaces:
       - `play.mp3` («Положил карту на стол.mp3»): Laying a card onto the table.
       - `pass.mp3` («Постучали колодой - пас.mp3»): Knocking on the deck/table when passing turn.
     - Synchronized for all players at the table so everyone hears card plays, draws, deals, and knocks in real time.
+    - Sound of pass (`pass.mp3`) strictly triggers only when an opponent passed their turn without throwing a card or drawing from deck.
+    - Harsh penalty sound effect removed per design direction for pleasant card play ambience.
 14. **Card Assets Optimization & Instant Preloading**:
     - All 36 cards + `BACK` + `DECK` converted to modern WebP (`quality: 90`), reducing total asset size from **3.90 MB to 0.54 MB (-86.1% size reduction)** with zero visual loss.
     - Number cards (6, 7, 8, 9, 10, A) reduced from ~75 KB down to **~10 KB**.
