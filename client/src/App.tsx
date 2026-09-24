@@ -50,24 +50,31 @@ export default function App() {
   const prevTopCardId = useRef<string | null>(null);
   const prevPhase = useRef<string | null>(null);
   const prevPenalty = useRef<number>(0);
+  const prevDeckCount = useRef<number | null>(null);
+  const prevTurnPlayerId = useRef<string | null>(null);
 
   useEffect(() => {
     if (!gameState) return;
 
-    // 1. Play card sound when top card changes
+    // 1. Play card sound when top card changes (card played onto table)
     if (gameState.topCard && gameState.topCard.id !== prevTopCardId.current) {
       if (prevTopCardId.current !== null) {
-        playSound('play');
+        playSound('play'); // Положил карту на стол
       }
       prevTopCardId.current = gameState.topCard.id;
     }
 
-    // 2. Victory sound when round or game ends
+    // 2. Victory sound when round or game ends; dealing sound when starting match/round
     if (gameState.phase !== prevPhase.current) {
       if (gameState.phase === 'ROUND_END' || gameState.phase === 'GAME_END') {
         playSound('victory');
-      } else if (gameState.phase === 'PLAYER_TURN' && prevPhase.current === 'ROUND_END') {
-        playSound('deal');
+      } else if (
+        gameState.phase === 'PLAYER_TURN' &&
+        (prevPhase.current === 'ROUND_END' || prevPhase.current === 'LOBBY' || prevPhase.current === null)
+      ) {
+        if (prevPhase.current !== null) {
+          playSound('deal'); // начало игры раздача карт
+        }
       }
       prevPhase.current = gameState.phase;
     }
@@ -77,6 +84,31 @@ export default function App() {
       playSound('penalty');
     }
     prevPenalty.current = gameState.penalty.amount;
+
+    // 4. Opponent or turn card draw sound (deck count decreased without top card change)
+    if (prevDeckCount.current !== null && gameState.deckCount < prevDeckCount.current) {
+      if (gameState.phase === 'PLAYER_TURN' || gameState.phase === 'EIGHT_DRAW') {
+        if (gameState.currentTurnPlayerId !== gameState.myPlayerId) {
+          playSound('draw'); // взял карту из колоды
+        }
+      }
+    }
+    prevDeckCount.current = gameState.deckCount;
+
+    // 5. Opponent pass sound (turn changed, no card played, deck count unchanged)
+    if (
+      prevTurnPlayerId.current !== null &&
+      gameState.currentTurnPlayerId !== prevTurnPlayerId.current &&
+      gameState.phase === 'PLAYER_TURN' &&
+      prevPhase.current === 'PLAYER_TURN'
+    ) {
+      if (prevTurnPlayerId.current !== gameState.myPlayerId) {
+        if (gameState.topCard?.id === prevTopCardId.current) {
+          playSound('pass'); // Постучали колодой - пас
+        }
+      }
+    }
+    prevTurnPlayerId.current = gameState.currentTurnPlayerId;
   }, [gameState, playSound]);
 
   // Listen for new chat messages to show 5-second disappearing toast and play sound
@@ -140,7 +172,7 @@ export default function App() {
     if (gameState?.penalty.amount && gameState.penalty.amount > 0) {
       playSound('penalty');
     } else {
-      playSound('deal');
+      playSound('draw');
     }
     drawCard();
   };
@@ -231,7 +263,7 @@ export default function App() {
         hiddenDrawCards={gameState?.myHiddenDrawCards || []}
         hand={gameState?.myHand || []}
         onDraw={() => {
-          playSound('deal');
+          playSound('draw');
           eightDraw();
         }}
         onStop={eightStop}

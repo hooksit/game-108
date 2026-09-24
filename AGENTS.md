@@ -30,7 +30,7 @@ Monorepo structure with npm workspaces:
 │       ├── App.tsx       # Root view router (Lobby vs GameTable), global chat toast, audio
 │       ├── hooks/
 │       │   ├── useGameSocket.ts  # Socket.IO connection & state listener
-│       │   └── useSound.ts       # WebAudio API sound synthesizer (zero external audio files needed)
+│       │   └── useSound.ts       # Realistic audio sound effects manager (deal, draw, play, pass, victory, penalty, message)
 │       └── components/
 │           ├── Lobby/        # LobbyScreen.tsx (simple 1-click room creation, players list)
 │           ├── Table/        # GameTable.tsx (table layout, discard pile, deck, opponents)
@@ -137,6 +137,13 @@ Monorepo structure with npm workspaces:
     - When a player ends a round by playing 6, 7, or ♠K, the exact cards drawn from the deck by the penalized opponent are displayed in `RoundEndModal` with visual card illustrations so all players see what cards were drawn.
 12. **Random Starter Selection Announcement**:
     - At match start, a random player is selected and displayed in a stylish `StartingTurnModal` showing the starter's avatar, the starting card, and the starting effect rule.
+13. **Realistic Audio Sound Effects**:
+    - Uses real card game audio recordings:
+      - `deal.mp3` («начало игры раздача карт.mp3»): Dealing card hands at match start and new round.
+      - `draw.mp3` («взял карту из колоды.mp3»): Taking a card from the deck during turn or eight mechanic.
+      - `play.mp3` («Положил карту на стол.mp3»): Laying a card onto the table.
+      - `pass.mp3` («Постучали колодой - пас.mp3»): Knocking on the deck/table when passing turn.
+    - Synchronized for all players at the table so everyone hears card plays, draws, deals, and knocks in real time.
 
 ---
 
