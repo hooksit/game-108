@@ -60,12 +60,6 @@ export const CardAnimationLayer: React.FC<CardAnimationLayerProps> = ({
               src={imageSrc}
               alt="flying card"
               className="w-full h-full object-fill drop-shadow-md"
-              onError={(e) => {
-                const target = e.target as HTMLImageElement;
-                if (target.src.endsWith('.webp')) {
-                  target.src = target.src.replace('.webp', '.png');
-                }
-              }}
             />
           </div>
         );

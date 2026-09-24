@@ -51,12 +51,6 @@ export const CardView: React.FC<CardViewProps> = ({
         alt={card ? `${card.rank} ${card.suit}` : 'Рубашка'}
         loading="eager"
         decoding="async"
-        onError={(e) => {
-          const target = e.target as HTMLImageElement;
-          if (target.src.endsWith('.webp')) {
-            target.src = target.src.replace('.webp', '.png');
-          }
-        }}
         className="w-full h-full object-fill pointer-events-none drop-shadow-sm"
         draggable={false}
       />

@@ -43,10 +43,6 @@ export const PlayerSeat: React.FC<PlayerSeatProps> = ({
                 alt="card back"
                 loading="eager"
                 decoding="async"
-                onError={(e) => {
-                  const target = e.target as HTMLImageElement;
-                  if (target.src.endsWith('.webp')) target.src = target.src.replace('.webp', '.png');
-                }}
                 className="w-full h-full object-cover"
                 draggable={false}
               />
