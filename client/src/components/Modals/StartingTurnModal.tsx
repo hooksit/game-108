@@ -50,7 +50,9 @@ export const StartingTurnModal: React.FC<StartingTurnModalProps> = ({
             />
             <div className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-emerald-400 border-2 border-black" />
           </div>
-          <span className="text-xs text-amber-200/70">Первым ходит:</span>
+          <span className="text-xs text-amber-200/70">
+            {startingInfo.effectText.includes('пропускает ход') ? 'Жеребьёвка выбрала:' : 'Первым ходит:'}
+          </span>
           <span className="text-base font-black text-amber-300">
             {startingInfo.starterNickname}
           </span>

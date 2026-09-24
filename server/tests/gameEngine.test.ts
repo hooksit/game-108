@@ -334,7 +334,7 @@ describe('Game 108 Engine Comprehensive Test Suite', () => {
     expect(starterIndex).toBe(2);
   });
 
-  it('16. Starter special card: 6 causes starter to counter or draw 1 card', () => {
+  it('16. Starter special card: 6 causes starter to draw 1 card and skip turn clockwise', () => {
     session.startMatch();
     session.currentTurnIndex = 0;
     session.players[0].hand = [{ id: 'HEARTS_10', suit: 'HEARTS', rank: '10' }];
@@ -345,16 +345,9 @@ describe('Game 108 Engine Comprehensive Test Suite', () => {
     session.penalty = { type: null, amount: 0 };
     (session as any).applyStartingCardEffect(startCard, session.players[0]);
 
-    // Starter p1 receives penalty of 1 card, can counter or draw
-    expect(session.penalty.type).toBe('6');
-    expect(session.penalty.amount).toBe(1);
-    expect(session.currentTurnIndex).toBe(0);
-
-    // Starter draws 1 card
-    session.drawCard('p1');
+    // Starter p1 draws 1 card, penalty is 0, turn skips to p2
     expect(session.players[0].hand.length).toBe(2);
     expect(session.penalty.amount).toBe(0);
-    // Turn advanced to p2
     expect(session.currentTurnIndex).toBe(1);
   });
 
@@ -507,7 +500,7 @@ describe('Game 108 Engine Comprehensive Test Suite', () => {
     expect(session.players.some(p => p.id === 'spec1')).toBe(true);
   });
 
-  it('25. Starter 7 can be countered with 7; Winning with ♠K records penaltyInfo with 5 cards', () => {
+  it('25. Starter 6, 7, and ♠K apply draw penalties, skip turn and advance clockwise; Winning with ♠K records penaltyInfo', () => {
     session.startMatch();
     session.currentTurnIndex = 0;
     session.players[0].hand = [
@@ -518,17 +511,30 @@ describe('Game 108 Engine Comprehensive Test Suite', () => {
       { id: 'CLUBS_9', suit: 'CLUBS', rank: '9' }
     ];
 
-    const startCard: Card = { id: 'CLUBS_7', suit: 'CLUBS', rank: '7' };
-    session.discardPile = [startCard];
+    const startCard7: Card = { id: 'CLUBS_7', suit: 'CLUBS', rank: '7' };
+    session.discardPile = [startCard7];
     session.penalty = { type: null, amount: 0 };
-    (session as any).applyStartingCardEffect(startCard, session.players[0]);
+    (session as any).applyStartingCardEffect(startCard7, session.players[0]);
 
-    // Starter p1 counters with HEARTS_7
-    expect(session.penalty.amount).toBe(2);
-    const counterRes = session.playCard('p1', 'HEARTS_7');
-    expect(counterRes.success).toBe(true);
-    // Penalty stacked to 4 cards, passed to p2
-    expect(session.penalty.amount).toBe(4);
+    // Starter p1 takes 2 cards, skips turn, turn passes to p2 (index 1)
+    expect(session.players[0].hand.length).toBe(4); // 2 original + 2 drawn
+    expect(session.penalty.amount).toBe(0);
+    expect(session.currentTurnIndex).toBe(1);
+
+    // Starter 6 test
+    session.currentTurnIndex = 0;
+    const initialHandLen = session.players[0].hand.length;
+    const startCard6: Card = { id: 'CLUBS_6', suit: 'CLUBS', rank: '6' };
+    (session as any).applyStartingCardEffect(startCard6, session.players[0]);
+    expect(session.players[0].hand.length).toBe(initialHandLen + 1);
+    expect(session.currentTurnIndex).toBe(1);
+
+    // Starter ♠K test
+    session.currentTurnIndex = 0;
+    const handLenBeforeK = session.players[0].hand.length;
+    const startCardK: Card = { id: 'SPADES_K', suit: 'SPADES', rank: 'K' };
+    (session as any).applyStartingCardEffect(startCardK, session.players[0]);
+    expect(session.players[0].hand.length).toBe(handLenBeforeK + 5);
     expect(session.currentTurnIndex).toBe(1);
 
     // Now test winning with ♠K

@@ -52,11 +52,11 @@ Monorepo structure with npm workspaces:
   - **4 cards** per player when 3 or more players are active.
   - **6 cards** per player when down to 2 players head-to-head.
 - **Starting Card**: Placed from deck onto discard pile at round start:
-  - If starter card is **6**: First player can counter with another 6 (penalty becomes +2) or draw 1 card, then turn passes to next player.
-  - If starter card is **7**: First player can counter with another 7 (penalty becomes +4) or draw 2 cards, then turn passes to next player.
+  - If starter card is **6**: First player draws 1 card from deck, skips turn, turn moves clockwise to next player.
+  - If starter card is **7**: First player draws 2 cards from deck, skips turn, turn moves clockwise to next player.
   - If starter card is **Ace**: First player skips turn, turn moves clockwise to next player.
-  - If starter card is **♠K** (King of Spades): First player draws 5 cards from deck, turn moves to next player.
-  - At the start of the game/round, a random selection modal (`StartingTurnModal`) shows who starts and explains the starting rule.
+  - If starter card is **♠K** (King of Spades): First player draws 5 cards from deck, skips turn, turn moves clockwise to next player.
+  - At the start of the game/round, a selection modal (`StartingTurnModal`) shows who starts and explains the starting rule.
 
 ### Card Values for Hand Score / Round End
 - **6, 7, 8, 9**: 0 points

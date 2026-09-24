@@ -350,27 +350,34 @@ export class GameSession {
       effectText = `Стартовый Туз: ${effectiveStarter.nickname} пропускает ход! Ходит ${nextPlayer?.nickname || ''}.`;
       this.lastActionMessage = effectText;
     } else if (card.rank === '6') {
-      // Starting player has 1 card penalty to counter with 6 or draw 1 card
-      this.penalty.type = '6';
-      this.penalty.amount = 1;
-      this.activeSuit = card.suit;
-      effectText = `Стартовая 6: ${effectiveStarter.nickname} должен перебить шестёркой или взять 1 карту из колоды.`;
+      // Starting player draws 1 card from deck, skips turn, turn passes clockwise to next player
+      const drawn = this.drawFromDeckSafe(1);
+      effectiveStarter.hand.push(...drawn);
+      effectiveStarter.cardCount = effectiveStarter.hand.length;
+      this.penalty = { type: null, amount: 0 };
+      this.advanceTurn(1);
+      const nextPlayer = this.getCurrentPlayer();
+      effectText = `Стартовая 6: ${effectiveStarter.nickname} берет 1 карту из колоды и пропускает ход! Ходит ${nextPlayer?.nickname || ''}.`;
       this.lastActionMessage = effectText;
     } else if (card.rank === '7') {
-      // Starting player has 2 cards penalty to counter with 7 or draw 2 cards
-      this.penalty.type = '7';
-      this.penalty.amount = 2;
-      this.activeSuit = card.suit;
-      effectText = `Стартовая 7: ${effectiveStarter.nickname} должен перебить семёркой или взять 2 карты из колоды.`;
+      // Starting player draws 2 cards from deck, skips turn, turn passes clockwise to next player
+      const drawn = this.drawFromDeckSafe(2);
+      effectiveStarter.hand.push(...drawn);
+      effectiveStarter.cardCount = effectiveStarter.hand.length;
+      this.penalty = { type: null, amount: 0 };
+      this.advanceTurn(1);
+      const nextPlayer = this.getCurrentPlayer();
+      effectText = `Стартовая 7: ${effectiveStarter.nickname} берет 2 карты из колоды и пропускает ход! Ходит ${nextPlayer?.nickname || ''}.`;
       this.lastActionMessage = effectText;
     } else if (card.suit === 'SPADES' && card.rank === 'K') {
-      // Starting player draws 5 cards, turn passes to next
+      // Starting player draws 5 cards, skips turn, turn passes clockwise to next player
       const drawn = this.drawFromDeckSafe(5);
       effectiveStarter.hand.push(...drawn);
       effectiveStarter.cardCount = effectiveStarter.hand.length;
+      this.penalty = { type: null, amount: 0 };
       this.advanceTurn(1);
       const nextPlayer = this.getCurrentPlayer();
-      effectText = `Стартовый ♠K: ${effectiveStarter.nickname} берет 5 карт из колоды! Ходит ${nextPlayer?.nickname || ''}.`;
+      effectText = `Стартовый ♠K: ${effectiveStarter.nickname} берет 5 карт из колоды и пропускает ход! Ходит ${nextPlayer?.nickname || ''}.`;
       this.lastActionMessage = effectText;
     } else if (card.rank === '8') {
       this.activeSuit = card.suit;
