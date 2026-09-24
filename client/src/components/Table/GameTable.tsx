@@ -23,37 +23,32 @@ interface GameTableProps {
 // Dynamically determine opponent position around the table based on opponent count
 const getOpponentPositionClass = (opponentIndex: number, totalOpponents: number): string => {
   switch (totalOpponents) {
-    case 1: // 2 players total: Top center placed with generous margin
+    case 1: // 2 players total: Top center placed on the central vertical axis
       return 'top-[84px] sm:top-24 left-1/2 -translate-x-1/2';
 
-    case 2: // 3 players total: Upper Left & Upper Right placed safely below toast
+    case 2: // 3 players total: Strictly symmetrical Upper Left & Upper Right
       return opponentIndex === 0
-        ? 'top-[28%] left-3 sm:left-6 -translate-y-1/2'
-        : 'top-[28%] right-3 sm:right-6 -translate-y-1/2';
+        ? 'top-[28%] left-4 sm:left-8 -translate-y-1/2'
+        : 'top-[28%] right-4 sm:right-8 -translate-y-1/2';
 
-    case 3: // 4 players total: Upper Left, Top Center, Upper Right
-      if (opponentIndex === 0) return 'top-[34%] left-3 sm:left-5 -translate-y-1/2';
+    case 3: // 4 players total: Upper Left, Top Center, Upper Right (strictly symmetrical)
+      if (opponentIndex === 0) return 'top-[36%] left-3 sm:left-6 -translate-y-1/2';
       if (opponentIndex === 1) return 'top-[84px] sm:top-24 left-1/2 -translate-x-1/2';
-      return 'top-[34%] right-3 sm:right-5 -translate-y-1/2';
+      return 'top-[36%] right-3 sm:right-6 -translate-y-1/2';
 
-    case 4: // 5 players total: Lower Left, Upper Left, Top Center, Upper Right
-      if (opponentIndex === 0) return 'top-[56%] left-2 sm:left-4 -translate-y-1/2';
-      if (opponentIndex === 1) return 'top-[26%] left-3 sm:left-5 -translate-y-1/2';
-      if (opponentIndex === 2) return 'top-[84px] sm:top-24 left-1/2 -translate-x-1/2';
-      return 'top-[26%] right-3 sm:right-5 -translate-y-1/2';
+    case 4: // 5 players total: 4 side players strictly symmetrical (2 left, 2 right), deck between the two on the right
+      if (opponentIndex === 0) return 'top-[60%] left-3 sm:left-6 -translate-y-1/2'; // Lower Left
+      if (opponentIndex === 1) return 'top-[24%] left-3 sm:left-6 -translate-y-1/2'; // Upper Left
+      if (opponentIndex === 2) return 'top-[24%] right-3 sm:right-6 -translate-y-1/2'; // Upper Right
+      return 'top-[60%] right-3 sm:right-6 -translate-y-1/2'; // Lower Right
 
-    case 5: // 6 players total: perfectly symmetrical arch around the oval table
+    case 5: // 6 players total: 4 side players strictly symmetrical (2 left, 2 right) + 1 Top Center, deck between right players
     default:
-      // Opponent 0: Lower Left (8 o'clock)
-      if (opponentIndex === 0) return 'top-[58%] left-2 sm:left-4 -translate-y-1/2';
-      // Opponent 1: Upper Left (10 o'clock)
-      if (opponentIndex === 1) return 'top-[26%] left-3 sm:left-5 -translate-y-1/2';
-      // Opponent 2: Top Center (12 o'clock)
-      if (opponentIndex === 2) return 'top-[84px] sm:top-24 left-1/2 -translate-x-1/2';
-      // Opponent 3: Upper Right (2 o'clock)
-      if (opponentIndex === 3) return 'top-[26%] right-3 sm:right-5 -translate-y-1/2';
-      // Opponent 4: Lower Right (4 o'clock)
-      return 'top-[58%] right-2 sm:right-4 -translate-y-1/2';
+      if (opponentIndex === 0) return 'top-[60%] left-3 sm:left-6 -translate-y-1/2'; // Lower Left
+      if (opponentIndex === 1) return 'top-[24%] left-3 sm:left-6 -translate-y-1/2'; // Upper Left
+      if (opponentIndex === 2) return 'top-[84px] sm:top-24 left-1/2 -translate-x-1/2'; // Top Center
+      if (opponentIndex === 3) return 'top-[24%] right-3 sm:right-6 -translate-y-1/2'; // Upper Right
+      return 'top-[60%] right-3 sm:right-6 -translate-y-1/2'; // Lower Right
   }
 };
 

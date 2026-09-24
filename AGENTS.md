@@ -162,12 +162,12 @@ Monorepo structure with npm workspaces:
       - Tapping the card again, tapping `Бросить ↑`, or tapping anywhere on the center table discard pile immediately throws the selected card.
       - Tapping another playable card smoothly transfers the selection.
     - **Symmetrical Table Layout & Deck Placement**:
-      - Opponents in 6-player games are distributed in a balanced arch around the oval table:
-        - Top Center: 12 o'clock (`top-[84px] sm:top-24`)
-        - Upper Sides: 10 & 2 o'clock (`top-[26%]`)
-        - Lower Sides: 8 & 4 o'clock (`top-[58%]`)
-      - Center deck sits at `top-[44%]` on the right side, nestled comfortably between the upper-right and lower-right opponents.
-      - Opponent visual card fan enlarged to `w-10.5 h-15 sm:w-12 sm:h-17`, and card count circle moved directly onto the top-right rim of the avatar (`-top-1.5 -right-2`) for tight, clean integration.
+      - Four side players are distributed strictly symmetrically relative to the central vertical axis:
+        - Upper Sides: 10 & 2 o'clock (`top-[24%] left-3 sm:left-6` vs `top-[24%] right-3 sm:right-6`)
+        - Lower Sides: 8 & 4 o'clock (`top-[60%] left-3 sm:left-6` vs `top-[60%] right-3 sm:right-6`)
+        - Top Center (when 6 players): 12 o'clock (`top-[84px] sm:top-24 left-1/2 -translate-x-1/2`)
+      - Draw deck sits at `top-[42%]` on the right side, located squarely in the vertical center between the two right opponents (18% gap above and below).
+      - Opponent visual card fan neatly sized with explicit `w-[28px] h-[42px] sm:w-[32px] sm:h-[48px]` cards in a compact fan (`w-20 h-10`), with card count circle anchored to the avatar top-right rim (`-top-1.5 -right-2`).
     - **Throwing onto the Table**:
       - `CardAnimationLayer.tsx` launches a high-performance GPU-accelerated flying card (`.anim-card-throw` using `translate3d`, `rotate`, `scale`).
       - Flight arc: card rises into an arc with a dynamic 3D tilt, rotations matching natural card throws, and scales seamlessly from hand into the center table.

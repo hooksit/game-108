@@ -19,20 +19,20 @@ export const PlayerSeat: React.FC<PlayerSeatProps> = ({
   // Render fan of face-down cards for opponents
   const renderCardFan = () => {
     if (isLocalUser || player.cardCount === 0 || player.isEliminated) return null;
-    const count = Math.min(player.cardCount, 8); // Display up to 8 visual cards in fan
+    const count = Math.min(player.cardCount, 6); // Up to 6 visual cards in fan
     const cards = Array.from({ length: count });
     const isTopCenter = positionClass.includes('left-1/2');
 
     return (
-      <div className={`absolute ${isTopCenter ? '-top-7 sm:-top-8' : '-top-8 sm:-top-9'} left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none w-32 h-16`}>
+      <div className={`absolute ${isTopCenter ? '-top-5 sm:-top-6' : '-top-6 sm:-top-7'} left-1/2 -translate-x-1/2 flex items-center justify-center pointer-events-none w-20 h-10`}>
         {cards.map((_, i) => {
           const total = cards.length;
-          const angle = (i - (total - 1) / 2) * 8;
-          const offsetX = (i - (total - 1) / 2) * 7.5;
+          const angle = (i - (total - 1) / 2) * 7;
+          const offsetX = (i - (total - 1) / 2) * 5;
           return (
             <div
               key={i}
-              className="absolute w-10.5 h-15 sm:w-12 sm:h-17 rounded-md shadow-lg overflow-hidden transition-transform duration-300 border border-white/20"
+              className="absolute w-[28px] h-[42px] sm:w-[32px] sm:h-[48px] rounded-sm shadow-md overflow-hidden transition-transform duration-300 border border-white/20"
               style={{
                 transform: `translateX(${offsetX}px) rotate(${angle}deg)`,
                 zIndex: i
@@ -43,7 +43,7 @@ export const PlayerSeat: React.FC<PlayerSeatProps> = ({
                 alt="card back"
                 loading="eager"
                 decoding="async"
-                className="w-full h-full object-cover"
+                className="w-full h-full object-fill"
                 draggable={false}
               />
             </div>
