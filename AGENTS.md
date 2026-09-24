@@ -162,11 +162,13 @@ Monorepo structure with npm workspaces:
       - Tapping the card again, tapping `Бросить ↑`, or tapping anywhere on the center table discard pile immediately throws the selected card.
       - Tapping another playable card smoothly transfers the selection.
     - **Symmetrical Table Layout & Deck Placement**:
+      - Table play area is anchored to the full viewport (`absolute inset-0 z-10 pointer-events-none`), mapping percentages directly 1:1 to the background table artwork (`table_bg.png`).
       - Four side players are distributed strictly symmetrically relative to the central vertical axis:
-        - Upper Sides: 10 & 2 o'clock (`top-[24%] left-3 sm:left-6` vs `top-[24%] right-3 sm:right-6`)
-        - Lower Sides: 8 & 4 o'clock (`top-[60%] left-3 sm:left-6` vs `top-[60%] right-3 sm:right-6`)
+        - Upper Sides: 10 & 2 o'clock (`top-[25%] left-[6%] sm:left-[8%]` vs `top-[25%] right-[6%] sm:right-[8%]`)
+        - Lower Sides: 8 & 4 o'clock (`top-[61%] left-[5%] sm:left-[7%]` vs `top-[61%] right-[5%] sm:right-[7%]`)
         - Top Center (when 6 players): 12 o'clock (`top-[84px] sm:top-24 left-1/2 -translate-x-1/2`)
-      - Draw deck sits at `top-[42%]` on the right side, located squarely in the vertical center between the two right opponents (18% gap above and below).
+      - Center Discard Zone and Draw Deck are centered on the table oval felt at `top-[43%] left-1/2 -translate-x-1/2 -translate-y-1/2`.
+      - Draw deck sits at `top-[43%]` on the right side, located squarely in the vertical center between the two right opponents (clean 18% / ~155px gap above and below, completely eliminating any overlap).
       - Opponent visual card fan neatly sized with explicit `w-[28px] h-[42px] sm:w-[32px] sm:h-[48px]` cards in a compact fan (`w-20 h-10`), with card count circle anchored to the avatar top-right rim (`-top-1.5 -right-2`).
     - **Throwing onto the Table**:
       - `CardAnimationLayer.tsx` launches a high-performance GPU-accelerated flying card (`.anim-card-throw` using `translate3d`, `rotate`, `scale`).

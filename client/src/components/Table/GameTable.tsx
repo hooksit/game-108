@@ -28,27 +28,27 @@ const getOpponentPositionClass = (opponentIndex: number, totalOpponents: number)
 
     case 2: // 3 players total: Strictly symmetrical Upper Left & Upper Right
       return opponentIndex === 0
-        ? 'top-[28%] left-4 sm:left-8 -translate-y-1/2'
-        : 'top-[28%] right-4 sm:right-8 -translate-y-1/2';
+        ? 'top-[25%] left-[6%] sm:left-[8%] -translate-y-1/2'
+        : 'top-[25%] right-[6%] sm:right-[8%] -translate-y-1/2';
 
     case 3: // 4 players total: Upper Left, Top Center, Upper Right (strictly symmetrical)
-      if (opponentIndex === 0) return 'top-[36%] left-3 sm:left-6 -translate-y-1/2';
+      if (opponentIndex === 0) return 'top-[30%] left-[6%] sm:left-[8%] -translate-y-1/2';
       if (opponentIndex === 1) return 'top-[84px] sm:top-24 left-1/2 -translate-x-1/2';
-      return 'top-[36%] right-3 sm:right-6 -translate-y-1/2';
+      return 'top-[30%] right-[6%] sm:right-[8%] -translate-y-1/2';
 
-    case 4: // 5 players total: 4 side players strictly symmetrical (2 left, 2 right), deck between the two on the right
-      if (opponentIndex === 0) return 'top-[60%] left-3 sm:left-6 -translate-y-1/2'; // Lower Left
-      if (opponentIndex === 1) return 'top-[24%] left-3 sm:left-6 -translate-y-1/2'; // Upper Left
-      if (opponentIndex === 2) return 'top-[24%] right-3 sm:right-6 -translate-y-1/2'; // Upper Right
-      return 'top-[60%] right-3 sm:right-6 -translate-y-1/2'; // Lower Right
+    case 4: // 5 players total: 4 side players strictly symmetrical (2 left, 2 right), deck in middle between the 2 on the right
+      if (opponentIndex === 0) return 'top-[61%] left-[5%] sm:left-[7%] -translate-y-1/2'; // Lower Left (8 o'clock)
+      if (opponentIndex === 1) return 'top-[25%] left-[6%] sm:left-[8%] -translate-y-1/2'; // Upper Left (10 o'clock)
+      if (opponentIndex === 2) return 'top-[25%] right-[6%] sm:right-[8%] -translate-y-1/2'; // Upper Right (2 o'clock)
+      return 'top-[61%] right-[5%] sm:right-[7%] -translate-y-1/2'; // Lower Right (4 o'clock)
 
     case 5: // 6 players total: 4 side players strictly symmetrical (2 left, 2 right) + 1 Top Center, deck between right players
     default:
-      if (opponentIndex === 0) return 'top-[60%] left-3 sm:left-6 -translate-y-1/2'; // Lower Left
-      if (opponentIndex === 1) return 'top-[24%] left-3 sm:left-6 -translate-y-1/2'; // Upper Left
-      if (opponentIndex === 2) return 'top-[84px] sm:top-24 left-1/2 -translate-x-1/2'; // Top Center
-      if (opponentIndex === 3) return 'top-[24%] right-3 sm:right-6 -translate-y-1/2'; // Upper Right
-      return 'top-[60%] right-3 sm:right-6 -translate-y-1/2'; // Lower Right
+      if (opponentIndex === 0) return 'top-[61%] left-[5%] sm:left-[7%] -translate-y-1/2'; // Lower Left (8 o'clock)
+      if (opponentIndex === 1) return 'top-[27%] left-[6%] sm:left-[8%] -translate-y-1/2'; // Upper Left (10 o'clock)
+      if (opponentIndex === 2) return 'top-[84px] sm:top-24 left-1/2 -translate-x-1/2'; // Top Center (12 o'clock)
+      if (opponentIndex === 3) return 'top-[27%] right-[6%] sm:right-[8%] -translate-y-1/2'; // Upper Right (2 o'clock)
+      return 'top-[61%] right-[5%] sm:right-[7%] -translate-y-1/2'; // Lower Right (4 o'clock)
   }
 };
 
@@ -103,7 +103,7 @@ export const GameTable: React.FC<GameTableProps> = ({
     durationMs = 380
   ) => {
     const fallbackStart = { x: window.innerWidth * 0.5, y: window.innerHeight * 0.85 };
-    const fallbackEnd = { x: window.innerWidth * 0.5, y: window.innerHeight * 0.48 };
+    const fallbackEnd = { x: window.innerWidth * 0.5, y: window.innerHeight * 0.43 };
 
     const startRect = startEl ? startEl.getBoundingClientRect() : {
       left: fallbackStart.x - 40,
@@ -159,7 +159,7 @@ export const GameTable: React.FC<GameTableProps> = ({
       ? document.getElementById(`player-seat-${targetPlayerId}`)
       : null;
 
-    const fallbackDeck = { x: window.innerWidth * 0.68, y: window.innerHeight * 0.48 };
+    const fallbackDeck = { x: window.innerWidth * 0.75, y: window.innerHeight * 0.43 };
     const fallbackTarget = isLocal
       ? { x: window.innerWidth * 0.5, y: window.innerHeight * 0.85 }
       : { x: window.innerWidth * 0.5, y: window.innerHeight * 0.25 };
@@ -301,23 +301,25 @@ export const GameTable: React.FC<GameTableProps> = ({
         <div className="absolute inset-0 bg-radial-gradient from-transparent via-black/10 to-black/30 pointer-events-none" />
       </div>
 
-      {/* 2. Opponents arranged along sides of Table (reduced compact size) */}
-      <div className="relative flex-1 w-full h-full z-10">
+      {/* 2. Full-Table Play Area: Opponents + Discard Zone and Draw Deck mapped directly to table felt */}
+      <div className="absolute inset-0 z-10 pointer-events-none">
+        {/* Opponents arranged symmetrically along sides of Table */}
         {opponents.map((p, idx) => {
           const posClass = getOpponentPositionClass(idx, opponents.length);
           return (
-            <PlayerSeat
-              key={p.id}
-              player={p}
-              isCurrentTurn={p.id === state.currentTurnPlayerId}
-              isLocalUser={false}
-              positionClass={posClass}
-            />
+            <div key={p.id} className="pointer-events-auto">
+              <PlayerSeat
+                player={p}
+                isCurrentTurn={p.id === state.currentTurnPlayerId}
+                isLocalUser={false}
+                positionClass={posClass}
+              />
+            </div>
           );
         })}
 
-        {/* Center Discard Zone and Draw Deck */}
-        <div className="absolute inset-0 flex items-center justify-center pointer-events-auto translate-y-2 sm:translate-y-4">
+        {/* Center Discard Zone and Draw Deck (Centered on oval table felt at ~43%) */}
+        <div className="absolute top-[43%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm pointer-events-auto flex items-center justify-center">
           <DiscardZone
             discardPileTop={state.discardPileTop}
             topCard={state.topCard}
@@ -336,8 +338,11 @@ export const GameTable: React.FC<GameTableProps> = ({
         </div>
       </div>
 
+      {/* Spacer to push Hand + Controls firmly to bottom */}
+      <div className="flex-1 pointer-events-none" />
+
       {/* 3. Bottom Area: Hand + Controls (User Avatar is positioned directly under cards) */}
-      <div className="relative z-30 flex flex-col w-full pb-2">
+      <div className="mt-auto relative z-30 flex flex-col w-full pb-2 pointer-events-auto">
         {/* Hand of Cards */}
         <PlayerHand
           hand={state.myHand}
