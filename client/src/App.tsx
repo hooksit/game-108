@@ -324,7 +324,7 @@ export default function App() {
       {chatToast && (
         <div
           onClick={handleOpenChat}
-          className="fixed top-1.5 sm:top-2 left-3 right-3 max-w-[280px] sm:max-w-xs mx-auto z-[90] flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-black/60 border border-amber-500/40 text-white shadow-2xl backdrop-blur-md cursor-pointer hover:bg-black/75 transition-all animate-fade-in"
+          className="fixed top-1.5 sm:top-2 left-3 right-3 max-w-[280px] sm:max-w-xs mx-auto z-[90] flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-black/40 border border-amber-500/25 text-white shadow-xl backdrop-blur-md cursor-pointer hover:bg-black/55 transition-all animate-fade-in"
           title="Нажмите чтобы открыть чат"
         >
           <img

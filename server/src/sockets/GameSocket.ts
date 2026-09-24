@@ -13,9 +13,8 @@ export function registerSocketHandlers(
 ) {
   const roomManager = RoomManager.getInstance();
 
-  // Send current lobby info and chat history to newly connected client
+  // Send current lobby info to newly connected client
   socket.emit('lobby:info', roomManager.getLobbyInfo());
-  socket.emit('chat:history', roomManager.getChatHistory());
 
   function broadcastLobbyInfo() {
     io.emit('lobby:info', roomManager.getLobbyInfo());
@@ -47,7 +46,6 @@ export function registerSocketHandlers(
     socket.join(socket.id);
 
     callback({ success: true, roomId });
-    socket.emit('chat:history', session.chatMessages);
     broadcastSessionState(session);
   });
 
@@ -60,7 +58,6 @@ export function registerSocketHandlers(
     socket.join(socket.id);
 
     callback({ success: true, roomId });
-    socket.emit('chat:history', session.chatMessages);
     broadcastSessionState(session);
   });
 
@@ -78,7 +75,6 @@ export function registerSocketHandlers(
     socket.join(socket.id);
 
     callback({ success: true });
-    socket.emit('chat:history', res.session.chatMessages);
     broadcastSessionState(res.session);
   });
 

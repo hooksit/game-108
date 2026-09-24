@@ -174,32 +174,14 @@ export const LobbyModal: React.FC<LobbyModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md select-none">
       <div className="w-full max-w-md p-6 sm:p-8 rounded-3xl bg-[#1d1611] border border-amber-500/40 shadow-2xl flex flex-col items-center text-white">
-        {/* Brand header with Chat Button */}
-        <div className="flex items-center justify-between w-full mb-4 px-1">
-          <div className="w-9" />
-          <div className="text-center">
-            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-wider text-amber-300 drop-shadow-md">
-              108
-            </h1>
-            <p className="text-[11px] uppercase tracking-widest text-amber-200/70 mt-0.5">
-              Карточная игра
-            </p>
-          </div>
-          {onOpenChat ? (
-            <button
-              type="button"
-              onClick={onOpenChat}
-              className="relative p-2.5 rounded-2xl bg-black/60 border border-amber-500/30 text-amber-200 hover:bg-black/80 hover:border-amber-400 transition-all shadow active:scale-95 cursor-pointer"
-              title="Чат игры"
-            >
-              <MessageSquare className="w-4 h-4 text-amber-300" />
-              {unreadChatCount > 0 && (
-                <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center w-4 h-4 rounded-full bg-rose-600 text-white text-[9px] font-black shadow">
-                  {unreadChatCount}
-                </span>
-              )}
-            </button>
-          ) : <div className="w-9" />}
+        {/* Brand header */}
+        <div className="w-full mb-4 px-1 text-center">
+          <h1 className="text-3xl sm:text-4xl font-extrabold tracking-wider text-amber-300 drop-shadow-md">
+            108
+          </h1>
+          <p className="text-[11px] uppercase tracking-widest text-amber-200/70 mt-0.5">
+            Карточная игра
+          </p>
         </div>
 
         {/* Live Lobby Active Game Notice */}
