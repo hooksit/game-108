@@ -72,6 +72,13 @@ body {
   z-index: 50 !important;
 }
 
+/* Card explicitly selected in hand (touch or click) */
+.card-selected {
+  transform: translateY(-34px) scale(1.12) !important;
+  box-shadow: 0 18px 36px rgba(0, 0, 0, 0.75), 0 0 24px rgba(243, 211, 140, 0.95) !important;
+  z-index: 60 !important;
+}
+
 .card-unplayable {
   filter: brightness(0.72) grayscale(0.25);
   cursor: not-allowed;
@@ -79,6 +86,104 @@ body {
 
 /* Orient pattern mandala in felt */
 .mandala-pattern {
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, vertical 1px);
   background-size: 24px 24px;
 }
+
+/* ------------------------------------------------------------- */
+/* Card Flight & Physical Table Animations                       */
+/* ------------------------------------------------------------- */
+
+@keyframes card-fly-throw {
+  0% {
+    transform: translate3d(var(--start-x, 0px), var(--start-y, 0px), 0) rotate(var(--start-rot, 0deg)) scale(1.05);
+    opacity: 1;
+  }
+  38% {
+    transform: translate3d(
+      calc(var(--start-x, 0px) * 0.62 + var(--end-x, 0px) * 0.38),
+      calc(var(--start-y, 0px) * 0.62 + var(--end-y, 0px) * 0.38 - 55px),
+      0
+    ) rotate(calc(var(--start-rot, 0deg) * 0.4 + var(--end-rot, 0deg) * 0.6 + var(--mid-rot, 12deg))) scale(1.16);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--end-x, 0px), var(--end-y, 0px), 0) rotate(var(--end-rot, 0deg)) scale(1);
+    opacity: 1;
+  }
+}
+
+.anim-card-throw {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation: card-fly-throw var(--fly-duration, 380ms) cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  z-index: 80;
+}
+
+@keyframes card-fly-draw {
+  0% {
+    transform: translate3d(var(--start-x, 0px), var(--start-y, 0px), 0) rotate(0deg) scale(0.92);
+    opacity: 0.9;
+  }
+  42% {
+    transform: translate3d(
+      calc(var(--start-x, 0px) * 0.58 + var(--end-x, 0px) * 0.42),
+      calc(var(--start-y, 0px) * 0.58 + var(--end-y, 0px) * 0.42 - 40px),
+      0
+    ) rotate(-8deg) scale(1.08);
+    opacity: 1;
+  }
+  100% {
+    transform: translate3d(var(--end-x, 0px), var(--end-y, 0px), 0) rotate(var(--end-rot, 0deg)) scale(1);
+    opacity: 1;
+  }
+}
+
+.anim-card-draw {
+  position: fixed;
+  top: 0;
+  left: 0;
+  pointer-events: none;
+  will-change: transform, opacity;
+  animation: card-fly-draw var(--fly-duration, 380ms) cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  z-index: 80;
+}
+
+@keyframes table-impact {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.09);
+    filter: drop-shadow(0 0 18px rgba(243, 211, 140, 0.85));
+  }
+  100% {
+    transform: scale(1);
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.5));
+  }
+}
+
+.impact-pulse {
+  animation: table-impact 300ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+@keyframes deck-press {
+  0% {
+    transform: scale(1);
+  }
+  30% {
+    transform: scale(0.92);
+    filter: brightness(1.25);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.deck-press-effect {
+  animation: deck-press 260ms ease-out;
+}
+

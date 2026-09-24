@@ -12,6 +12,10 @@ interface DiscardZoneProps {
   penalty: PenaltyState;
   canDrawCard: boolean;
   onDrawCard: () => void;
+  isDiscardImpact?: boolean;
+  isDeckPress?: boolean;
+  hasSelectedCard?: boolean;
+  onDiscardPileClick?: () => void;
 }
 
 export const DiscardZone: React.FC<DiscardZoneProps> = ({
@@ -23,7 +27,11 @@ export const DiscardZone: React.FC<DiscardZoneProps> = ({
   isMyTurn,
   penalty,
   canDrawCard,
-  onDrawCard
+  onDrawCard,
+  isDiscardImpact = false,
+  isDeckPress = false,
+  hasSelectedCard = false,
+  onDiscardPileClick
 }) => {
   // Positional offsets for cards lying on the table
   const cardOffsets = [
@@ -38,7 +46,25 @@ export const DiscardZone: React.FC<DiscardZoneProps> = ({
       {/* Center Table Play Area & Deck */}
       <div className="relative flex items-center justify-center w-full h-44">
         {/* Discard Pile (Center) */}
-        <div className="relative w-24 h-36 flex items-center justify-center">
+        <div
+          id="table-discard-pile"
+          onClick={hasSelectedCard && onDiscardPileClick ? onDiscardPileClick : undefined}
+          className={`
+            relative w-24 h-36 flex items-center justify-center transition-transform duration-200
+            ${isDiscardImpact ? 'impact-pulse' : ''}
+            ${hasSelectedCard ? 'cursor-pointer hover:scale-105 active:scale-95' : ''}
+          `}
+          title={hasSelectedCard ? 'Нажмите, чтобы бросить выбранную карту' : undefined}
+        >
+          {/* Subtle guide ring when a card in hand is selected */}
+          {hasSelectedCard && (
+            <div className="absolute -inset-2 rounded-2xl border-2 border-dashed border-amber-400/70 bg-amber-400/10 animate-pulse pointer-events-none z-30 flex items-center justify-center">
+              <span className="text-[10px] font-black text-amber-300 uppercase tracking-widest bg-black/60 px-2 py-0.5 rounded-full">
+                Бросить
+              </span>
+            </div>
+          )}
+
           {discardPileTop.map((card, i) => {
             const isTop = i === discardPileTop.length - 1;
             const offset = cardOffsets[Math.min(i, cardOffsets.length - 1)];
@@ -69,10 +95,12 @@ export const DiscardZone: React.FC<DiscardZoneProps> = ({
 
         {/* Draw Deck (Right of center) */}
         <div
+          id="table-draw-deck"
           onClick={canDrawCard ? onDrawCard : undefined}
           className={`
             absolute right-4 sm:right-8 flex flex-col items-center
             ${canDrawCard ? 'cursor-pointer hover:scale-105 active:scale-95 group' : 'cursor-default'}
+            ${isDeckPress ? 'deck-press-effect' : ''}
             transition-all duration-200 select-none
           `}
           title={canDrawCard ? 'Нажмите, чтобы взять карту' : 'Колода добора'}

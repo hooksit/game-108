@@ -62,7 +62,10 @@ export const PlayerSeat: React.FC<PlayerSeatProps> = ({
   };
 
   return (
-    <div className={`absolute flex flex-col items-center ${positionClass} transition-all duration-300`}>
+    <div
+      id={`player-seat-${player.id}`}
+      className={`absolute flex flex-col items-center ${positionClass} transition-all duration-300`}
+    >
       {/* Cards behind opponent */}
       {renderCardFan()}
 

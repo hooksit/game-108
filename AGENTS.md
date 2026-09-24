@@ -151,6 +151,21 @@ Monorepo structure with npm workspaces:
     - `DECK.webp` reduced from 1020 KB down to **111 KB**.
     - Automated preloading via `preloadAllCards()` on app mount caches all 38 assets into browser memory in <200ms, eliminating any delay or blank flicker when drawing cards from the deck.
     - `CardView.tsx`, `DiscardZone.tsx`, and `PlayerSeat.tsx` use `loading="eager"` and `decoding="async"` with automatic `.png` fallback.
+15. **Card Animations (Selection, Throw to Table, Draw from Deck, & Impacts)**:
+    - **Card Selection in Hand**:
+      - Tapping any playable card elevates it smoothly out of the hand fan (`translateY(-34px)`, `scale(1.12)`, bright gold glowing halo ring `z-[65]`).
+      - A golden glowing action button (`Бросить ↑`) appears directly above the card with an inviting bounce.
+      - Tapping the card again, tapping `Бросить ↑`, or tapping anywhere on the center table discard pile immediately throws the selected card.
+      - Tapping another playable card smoothly transfers the selection.
+    - **Throwing onto the Table**:
+      - `CardAnimationLayer.tsx` launches a high-performance GPU-accelerated flying card (`.anim-card-throw` using `translate3d`, `rotate`, `scale`).
+      - Flight arc: card rises into an arc with a dynamic 3D tilt, rotations matching natural card throws, and scales seamlessly from hand into the center table.
+      - Landing impact: upon landing on the discard pile, a tactile felt impact pulse (`.impact-pulse`) vibrates with an amber glow.
+      - Synchronized for both local player and opponents (when an opponent plays, the card flies from their seat directly onto the discard pile).
+    - **Taking a Card from the Deck**:
+      - Draw deck has a tactile compression/press effect (`.deck-press-effect`).
+      - A card peels smoothly off the deck and flies in a graceful arc (`.anim-card-draw`) down into the player's hand (or to the opponent's seat when an opponent draws).
+      - Multi-card draws (e.g. King of Spades +5 penalty, 7s penalty) are sequentially staggered for realistic physical feel.
 
 ---
 

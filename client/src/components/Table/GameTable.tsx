@@ -1,9 +1,10 @@
-import React from 'react';
-import { GameStateView } from '@game-108/shared';
+import React, { useState, useEffect, useRef } from 'react';
+import { GameStateView, Card } from '@game-108/shared';
 import { PlayerSeat } from '../PlayerSeat/PlayerSeat';
 import { DiscardZone } from '../DiscardZone/DiscardZone';
 import { PlayerHand } from '../Hand/PlayerHand';
 import { Controls } from '../Controls/Controls';
+import { CardAnimationLayer, FlyingCardItem } from './CardAnimationLayer';
 
 interface GameTableProps {
   state: GameStateView;
@@ -67,6 +68,19 @@ export const GameTable: React.FC<GameTableProps> = ({
   const isMyTurn = state.currentTurnPlayerId === state.myPlayerId;
   const currentTurnPlayer = state.players.find((p) => p.id === state.currentTurnPlayerId);
 
+  // Animation states
+  const [flyingCards, setFlyingCards] = useState<FlyingCardItem[]>([]);
+  const [isDiscardImpact, setIsDiscardImpact] = useState(false);
+  const [isDeckPress, setIsDeckPress] = useState(false);
+  const [selectedCardId, setSelectedCardId] = useState<string | null>(null);
+
+  // Animation tracking refs
+  const prevTopCardId = useRef<string | null>(state.topCard?.id || null);
+  const prevDeckCount = useRef<number>(state.deckCount);
+  const lastLocalPlayedCardId = useRef<string | null>(null);
+  const localJustDrewRef = useRef<boolean>(false);
+  const prevTurnPlayerId = useRef<string | null>(state.currentTurnPlayerId);
+
   // Find local player and opponents
   const myPlayer = state.players.find((p) => p.id === state.myPlayerId);
   const mySeatIndex = myPlayer?.seatIndex ?? 0;
@@ -81,8 +95,190 @@ export const GameTable: React.FC<GameTableProps> = ({
       return diffA - diffB;
     });
 
+  // Launch throw animation
+  const triggerThrowAnimation = (
+    card: Card,
+    startEl: HTMLElement | null,
+    endEl: HTMLElement | null,
+    durationMs = 380
+  ) => {
+    const fallbackStart = { x: window.innerWidth * 0.5, y: window.innerHeight * 0.85 };
+    const fallbackEnd = { x: window.innerWidth * 0.5, y: window.innerHeight * 0.44 };
+
+    const startRect = startEl ? startEl.getBoundingClientRect() : {
+      left: fallbackStart.x - 40,
+      top: fallbackStart.y - 60,
+      width: 80,
+      height: 120
+    };
+
+    const endRect = endEl ? endEl.getBoundingClientRect() : {
+      left: fallbackEnd.x - 40,
+      top: fallbackEnd.y - 60,
+      width: 80,
+      height: 120
+    };
+
+    const width = startRect.width || 80;
+    const height = startRect.height || 120;
+    const endX = endRect.left + (endRect.width - width) / 2;
+    const endY = endRect.top + (endRect.height - height) / 2;
+
+    const animItem: FlyingCardItem = {
+      id: `throw_${card.id}_${Date.now()}_${Math.random()}`,
+      type: 'throw',
+      card,
+      isBack: false,
+      startX: startRect.left,
+      startY: startRect.top,
+      endX,
+      endY,
+      startRot: 0,
+      endRot: (Math.random() - 0.5) * 16,
+      width,
+      height,
+      durationMs
+    };
+
+    setFlyingCards((prev) => [...prev, animItem]);
+  };
+
+  // Launch draw animation
+  const triggerDrawAnimation = (
+    isLocal: boolean,
+    targetPlayerId?: string | null,
+    durationMs = 380
+  ) => {
+    setIsDeckPress(true);
+    setTimeout(() => setIsDeckPress(false), 260);
+
+    const deckEl = document.getElementById('table-draw-deck');
+    const targetEl = isLocal
+      ? document.getElementById('player-hand-container')
+      : targetPlayerId
+      ? document.getElementById(`player-seat-${targetPlayerId}`)
+      : null;
+
+    const fallbackDeck = { x: window.innerWidth * 0.68, y: window.innerHeight * 0.44 };
+    const fallbackTarget = isLocal
+      ? { x: window.innerWidth * 0.5, y: window.innerHeight * 0.85 }
+      : { x: window.innerWidth * 0.5, y: window.innerHeight * 0.25 };
+
+    const startRect = deckEl ? deckEl.getBoundingClientRect() : {
+      left: fallbackDeck.x - 40,
+      top: fallbackDeck.y - 55,
+      width: 80,
+      height: 115
+    };
+
+    const endRect = targetEl ? targetEl.getBoundingClientRect() : {
+      left: fallbackTarget.x - 40,
+      top: fallbackTarget.y - 40,
+      width: 60,
+      height: 80
+    };
+
+    const width = Math.min(startRect.width || 75, 80);
+    const height = Math.min(startRect.height || 110, 120);
+    const endX = endRect.left + (endRect.width - width) / 2;
+    const endY = endRect.top + (endRect.height - height) / 2;
+
+    const animItem: FlyingCardItem = {
+      id: `draw_${Date.now()}_${Math.random()}`,
+      type: 'draw',
+      isBack: true,
+      startX: startRect.left,
+      startY: startRect.top,
+      endX,
+      endY,
+      startRot: 0,
+      endRot: (Math.random() - 0.5) * 16,
+      width,
+      height,
+      durationMs
+    };
+
+    setFlyingCards((prev) => [...prev, animItem]);
+  };
+
+  const handleAnimationComplete = (id: string, type: 'throw' | 'draw') => {
+    setFlyingCards((prev) => prev.filter((item) => item.id !== id));
+    if (type === 'throw') {
+      setIsDiscardImpact(true);
+      setTimeout(() => setIsDiscardImpact(false), 300);
+    }
+  };
+
+  // Local play action with animated throw
+  const handleLocalPlayCard = (cardId: string) => {
+    const card = state.myHand.find((c) => c.id === cardId);
+    if (card) {
+      lastLocalPlayedCardId.current = cardId;
+      const cardEl = document.getElementById(`hand-card-${cardId}`);
+      const discardEl = document.getElementById('table-discard-pile');
+      triggerThrowAnimation(card, cardEl, discardEl);
+    }
+    setSelectedCardId(null);
+    onPlayCard(cardId);
+  };
+
+  // Local draw action with animated draw
+  const handleLocalDrawCard = () => {
+    localJustDrewRef.current = true;
+    triggerDrawAnimation(true);
+    onDrawCard();
+  };
+
+  // Clicking discard pile when a card is selected in hand throws it
+  const handleDiscardPileClick = () => {
+    if (selectedCardId && isMyTurn) {
+      handleLocalPlayCard(selectedCardId);
+    }
+  };
+
+  // Animate opponent plays onto the table
+  useEffect(() => {
+    if (state.topCard && state.topCard.id !== prevTopCardId.current) {
+      const isLocalPlay = lastLocalPlayedCardId.current === state.topCard.id;
+      if (!isLocalPlay) {
+        // An opponent laid down this card!
+        const discardEl = document.getElementById('table-discard-pile');
+        const opponentId = prevTurnPlayerId.current || state.currentTurnPlayerId;
+        const seatEl = (opponentId ? document.getElementById(`player-seat-${opponentId}`) : null) ||
+                       document.querySelector(`[id^="player-seat-"]`);
+        triggerThrowAnimation(state.topCard, seatEl as HTMLElement, discardEl);
+      }
+      lastLocalPlayedCardId.current = null;
+      prevTopCardId.current = state.topCard.id;
+    }
+  }, [state.topCard]);
+
+  // Animate opponent draws from deck
+  useEffect(() => {
+    if (prevDeckCount.current !== undefined && state.deckCount < prevDeckCount.current) {
+      if (!localJustDrewRef.current) {
+        const diff = prevDeckCount.current - state.deckCount;
+        const count = Math.min(diff, 4);
+        for (let i = 0; i < count; i++) {
+          setTimeout(() => {
+            triggerDrawAnimation(false, state.currentTurnPlayerId);
+          }, i * 90);
+        }
+      }
+      localJustDrewRef.current = false;
+    }
+    prevDeckCount.current = state.deckCount;
+  }, [state.deckCount, state.currentTurnPlayerId]);
+
+  useEffect(() => {
+    prevTurnPlayerId.current = state.currentTurnPlayerId;
+  }, [state.currentTurnPlayerId]);
+
   return (
     <div className="relative flex-1 flex flex-col justify-between w-full max-w-md mx-auto overflow-hidden select-none">
+      {/* Flying card animation layer */}
+      <CardAnimationLayer cards={flyingCards} onComplete={handleAnimationComplete} />
+
       {/* Spectator floating banner */}
       {state.isSpectator && (
         <div className="absolute top-11 sm:top-12 left-1/2 -translate-x-1/2 z-20 px-3 py-1 rounded-full bg-black/80 border border-amber-400/50 backdrop-blur-md shadow-2xl flex items-center gap-2 text-white pointer-events-none whitespace-nowrap">
@@ -131,7 +327,11 @@ export const GameTable: React.FC<GameTableProps> = ({
             isMyTurn={isMyTurn}
             penalty={state.penalty}
             canDrawCard={state.canDrawCard}
-            onDrawCard={onDrawCard}
+            onDrawCard={handleLocalDrawCard}
+            isDiscardImpact={isDiscardImpact}
+            isDeckPress={isDeckPress}
+            hasSelectedCard={Boolean(selectedCardId)}
+            onDiscardPileClick={handleDiscardPileClick}
           />
         </div>
       </div>
@@ -143,7 +343,9 @@ export const GameTable: React.FC<GameTableProps> = ({
           hand={state.myHand}
           validPlayableCardIds={state.validPlayableCardIds}
           isMyTurn={isMyTurn}
-          onPlayCard={onPlayCard}
+          selectedCardId={selectedCardId}
+          onSelectCard={setSelectedCardId}
+          onPlayCard={handleLocalPlayCard}
         />
 
         {/* Controls Bar with Local Player Avatar in center */}
@@ -154,7 +356,7 @@ export const GameTable: React.FC<GameTableProps> = ({
           canDrawCard={state.canDrawCard}
           canPass={state.canPass}
           penalty={state.penalty}
-          onDrawCard={onDrawCard}
+          onDrawCard={handleLocalDrawCard}
           onPassTurn={onPassTurn}
           onOpenChat={onOpenChat}
           unreadChatCount={unreadChatCount}
@@ -172,3 +374,4 @@ export const GameTable: React.FC<GameTableProps> = ({
     </div>
   );
 };
+
