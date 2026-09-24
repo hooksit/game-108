@@ -214,13 +214,14 @@ export function useGameSocket() {
     });
   }, []);
 
-  const sendMessage = useCallback((message: string) => {
+  const sendMessage = useCallback((message: string, nickname?: string, avatar?: string) => {
     if (!socketRef.current) return;
-    socketRef.current.emit('chat:send', { message });
+    socketRef.current.emit('chat:send', { message, nickname, avatar });
   }, []);
 
   return {
     isConnected,
+    socketId: socketRef.current?.id || '',
     gameState,
     messages,
     errorMessage,

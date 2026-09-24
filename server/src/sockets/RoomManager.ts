@@ -1,10 +1,11 @@
 import { GameSession } from '../engine/GameSession';
-import { LobbyInfo } from '@game-108/shared';
+import { LobbyInfo, ChatMessage } from '@game-108/shared';
 
 export class RoomManager {
   private static instance: RoomManager;
   private rooms: Map<string, GameSession> = new Map();
   private playerRoomMap: Map<string, string> = new Map(); // socketId/playerId -> roomId
+  private globalChatMessages: ChatMessage[] = [];
 
   private constructor() {}
 
@@ -23,6 +24,9 @@ export class RoomManager {
     }
 
     const session = new GameSession(roomId);
+    if (this.globalChatMessages.length > 0) {
+      session.chatMessages = [...this.globalChatMessages];
+    }
     session.addPlayer(playerId, nickname, avatar);
 
     this.rooms.set(roomId, session);
@@ -156,6 +160,25 @@ export class RoomManager {
       }
     }
     return null;
+  }
+
+  public getChatHistory(): ChatMessage[] {
+    for (const [, session] of this.rooms.entries()) {
+      if (session.chatMessages && session.chatMessages.length > 0) {
+        return session.chatMessages;
+      }
+    }
+    return this.globalChatMessages;
+  }
+
+  public addChatMessage(msg: ChatMessage): void {
+    this.globalChatMessages.push(msg);
+    if (this.globalChatMessages.length > 200) {
+      this.globalChatMessages.shift();
+    }
+    for (const [, session] of this.rooms.entries()) {
+      session.addChatMessage(msg);
+    }
   }
 
   private generateRoomId(): string {

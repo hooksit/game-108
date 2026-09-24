@@ -13,6 +13,7 @@ import { ChatDrawer } from './components/Chat/ChatDrawer';
 
 export default function App() {
   const {
+    socketId,
     gameState,
     messages,
     errorMessage,
@@ -83,14 +84,15 @@ export default function App() {
     if (messages.length > prevMessageCount.current) {
       const latestMsg = messages[messages.length - 1];
       prevMessageCount.current = messages.length;
-      if (latestMsg && latestMsg.senderId !== gameState?.myPlayerId) {
+      const myId = gameState?.myPlayerId || socketId;
+      if (latestMsg && latestMsg.senderId !== myId) {
         playSound('message');
         if (!isChatOpen) {
           setUnreadCount((c) => c + 1);
           const sender = gameState?.players.find((p) => p.id === latestMsg.senderId);
           setChatToast({
             nickname: latestMsg.nickname,
-            avatar: sender?.avatar || 'player',
+            avatar: sender?.avatar || latestMsg.avatar || 'player',
             message: latestMsg.message
           });
 
@@ -103,7 +105,7 @@ export default function App() {
         }
       }
     }
-  }, [messages, gameState?.myPlayerId, gameState?.players, isChatOpen, playSound]);
+  }, [messages, gameState?.myPlayerId, socketId, gameState?.players, isChatOpen, playSound]);
 
   // Show starting turn modal on new round start
   useEffect(() => {
@@ -124,7 +126,9 @@ export default function App() {
   };
 
   const handleSendMessage = (text: string) => {
-    sendMessage(text);
+    const nick = localStorage.getItem('player_nick') || 'Игрок';
+    const av = localStorage.getItem('player_avatar') || 'player';
+    sendMessage(text, nick, av);
   };
 
   const handlePlayCard = (cardId: string) => {
@@ -180,29 +184,6 @@ export default function App() {
       ) : (
         <div className="flex-1 flex items-center justify-center text-amber-200/50 text-sm animate-pulse">
           Подключение к серверу...
-        </div>
-      )}
-
-      {/* Floating Chat Message Toast (semi-transparent 30%, auto-dismiss 5s, strictly within bounds) */}
-      {chatToast && (
-        <div
-          onClick={handleOpenChat}
-          className="fixed top-16 left-4 right-4 max-w-xs mx-auto z-50 flex items-center gap-2.5 px-3.5 py-2 rounded-2xl bg-black/30 border border-amber-500/30 text-white shadow-2xl backdrop-blur-md cursor-pointer hover:bg-black/45 transition-all animate-bounce"
-          title="Нажмите чтобы открыть чат"
-        >
-          <img
-            src={`/assets/avatars/${chatToast.avatar || 'player'}.png`}
-            alt={chatToast.nickname}
-            className="w-7 h-7 rounded-full border border-amber-400/60 object-cover shrink-0"
-          />
-          <div className="flex flex-col min-w-0 flex-1 text-left overflow-hidden">
-            <span className="text-[10px] font-bold text-amber-300 truncate">
-              {chatToast.nickname}
-            </span>
-            <span className="text-xs text-white/95 truncate">
-              {chatToast.message}
-            </span>
-          </div>
         </div>
       )}
 
@@ -286,11 +267,34 @@ export default function App() {
         />
       )}
 
+      {/* Floating Chat Message Toast (top-2 closer to top edge, compact, z-[90] visible in lobby and game without overlapping players) */}
+      {chatToast && (
+        <div
+          onClick={handleOpenChat}
+          className="fixed top-2 sm:top-3 left-3 right-3 max-w-[280px] sm:max-w-xs mx-auto z-[90] flex items-center gap-2.5 px-3 py-1.5 rounded-2xl bg-black/60 border border-amber-500/40 text-white shadow-2xl backdrop-blur-md cursor-pointer hover:bg-black/75 transition-all animate-bounce"
+          title="Нажмите чтобы открыть чат"
+        >
+          <img
+            src={`/assets/avatars/${chatToast.avatar || 'player'}.png`}
+            alt={chatToast.nickname}
+            className="w-6 h-6 rounded-full border border-amber-400/60 object-cover shrink-0"
+          />
+          <div className="flex flex-col min-w-0 flex-1 text-left overflow-hidden">
+            <span className="text-[10px] font-bold text-amber-300 truncate">
+              {chatToast.nickname}
+            </span>
+            <span className="text-xs text-white/95 truncate">
+              {chatToast.message}
+            </span>
+          </div>
+        </div>
+      )}
+
       {/* Chat Drawer */}
       <ChatDrawer
         isOpen={isChatOpen}
         messages={messages}
-        myPlayerId={gameState?.myPlayerId || ''}
+        myPlayerId={gameState?.myPlayerId || socketId}
         onClose={() => setIsChatOpen(false)}
         onSendMessage={handleSendMessage}
       />

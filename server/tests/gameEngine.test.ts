@@ -237,6 +237,7 @@ describe('Game 108 Engine Comprehensive Test Suite', () => {
     session.startMatch();
     session.phase = 'EIGHT_SELECT';
     session.currentTurnIndex = 1;
+    session.penalty = { type: null, amount: 0 };
     session.activeSuit = 'HEARTS';
     session.discardPile = [{ id: 'HEARTS_8', suit: 'HEARTS', rank: '8' }];
     session.players[1].hand = [

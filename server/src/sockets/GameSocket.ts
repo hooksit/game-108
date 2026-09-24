@@ -13,8 +13,9 @@ export function registerSocketHandlers(
 ) {
   const roomManager = RoomManager.getInstance();
 
-  // Send current lobby info to newly connected client
+  // Send current lobby info and chat history to newly connected client
   socket.emit('lobby:info', roomManager.getLobbyInfo());
+  socket.emit('chat:history', roomManager.getChatHistory());
 
   function broadcastLobbyInfo() {
     io.emit('lobby:info', roomManager.getLobbyInfo());
@@ -262,40 +263,44 @@ export function registerSocketHandlers(
   });
 
   // 12. Chat Message
-  socket.on('chat:send', ({ message }) => {
-    const session = roomManager.getSessionByPlayerId(socket.id);
-    if (!session) return;
+  socket.on('chat:send', ({ message, nickname, avatar }) => {
+    let nick = (nickname || 'Гость').trim().slice(0, 16);
+    let av = avatar || 'player';
 
-    let nick = 'Игрок';
-    let avatar = 'player';
-    const player = session.players.find(p => p.id === socket.id);
-    if (player) {
-      nick = player.nickname;
-      avatar = player.avatar || 'player';
-    } else {
-      const spec = session.spectators.find(s => s.id === socket.id);
-      if (spec) {
-        nick = `${spec.nickname} (зритель)`;
-        avatar = spec.avatar || 'player';
+    const session = roomManager.getSessionByPlayerId(socket.id);
+    if (session) {
+      const player = session.players.find(p => p.id === socket.id);
+      if (player) {
+        nick = player.nickname;
+        av = player.avatar || 'player';
       } else {
-        return;
+        const spec = session.spectators.find(s => s.id === socket.id);
+        if (spec) {
+          nick = `${spec.nickname} (зритель)`;
+          av = spec.avatar || 'player';
+        }
+      }
+    } else {
+      // In lobby, not joined to a room yet
+      if (!nick || nick === 'Игрок') {
+        nick = 'Гость';
       }
     }
 
-    const cleanMsg = message.trim().slice(0, 100);
+    const cleanMsg = (message || '').trim().slice(0, 100);
     if (!cleanMsg) return;
 
     const chatMsg = {
       id: `${Date.now()}_${Math.random().toString(36).substr(2, 6)}`,
       senderId: socket.id,
       nickname: nick,
-      avatar,
+      avatar: av,
       message: cleanMsg,
       timestamp: Date.now()
     };
 
-    session.addChatMessage(chatMsg);
-    io.to(session.id).emit('chat:message', chatMsg);
+    roomManager.addChatMessage(chatMsg);
+    io.emit('chat:message', chatMsg);
   });
 
   // 11. Disconnect

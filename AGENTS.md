@@ -106,10 +106,11 @@ Monorepo structure with npm workspaces:
 2. **Sound Toggle Button**:
    - Located in the bottom-right corner, **directly above the action button («Взять карту» / «Пас»)**.
    - Avoids top-left collision with opponent avatars in multi-player setups.
-3. **Chat Toast Notifications**:
-   - Semi-transparent style (`bg-black/30 backdrop-blur-md border border-amber-500/30`).
-   - Centered horizontally (`top-16 left-4 right-4 max-w-xs mx-auto`), auto-dismisses after 5 seconds.
-   - Long messages are truncated cleanly so they never bleed out of viewport or overlap opponents.
+3. **Chat Toast Notifications & Top-Edge Positioning**:
+   - Compact semi-transparent style (`bg-black/60 backdrop-blur-md border border-amber-500/40 text-white`, `z-[90]`).
+   - Positioned close to the top edge (`top-2 sm:top-3 left-3 right-3 max-w-[280px] sm:max-w-xs mx-auto`), auto-dismisses after 5 seconds.
+   - Opponents and their card fans are placed safely BELOW the top edge toast area (`top-[27%]` for 2 opponents, `top-20` for top-center, etc.), ensuring floating toasts never overlap opponent cards or avatars.
+   - Rendered with `z-[90]`, visible in both the lobby and during active gameplay.
 4. **Player Hand Score Display**:
    - Placed directly inside the local player's badge under their avatar in the bottom bar: `в руке 12 оч.`.
    - Floating pill above the card fan was intentionally removed to keep card view completely clean.
@@ -126,8 +127,10 @@ Monorepo structure with npm workspaces:
    - The player who initiated the restart proposal becomes the room host with rights to click "Начать игру".
 8. **Disconnect Handling**:
    - When a player disconnects unexpectedly, their hand and hidden cards are returned and shuffled back into the deck, preserving deck count.
-9. **Lobby Chat & Message Persistence**:
-   - Chat is accessible directly from the waiting lobby screen. Messages are persisted in `session.chatMessages` on the server and synced on connect via `chat:history`, keeping message history throughout the entire game lifecycle.
+9. **Global Lobby Chat & Visitor Messaging (Without Connecting)**:
+   - Chat is accessible directly from the entrance lobby screen even before joining or creating a game.
+   - Anyone in the lobby sees floating toasts of incoming messages and can open the chat drawer to read history and send messages.
+   - Messages are broadcast to all connected clients (`io.emit('chat:message')`) and persisted in `RoomManager.globalChatMessages` and `session.chatMessages`.
 10. **Uniform Card Dimensions**:
     - All 36 card face assets and card back (`BACK.png`) are uniformly sized to `(240, 360)` (standard 2:3 ratio) and rendered with `object-fill`, ensuring zero size differences between different ranks/suits.
 11. **Penalty Cards Visibility on Round End**:

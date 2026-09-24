@@ -22,32 +22,32 @@ interface GameTableProps {
 // Dynamically determine opponent position around the table based on opponent count
 const getOpponentPositionClass = (opponentIndex: number, totalOpponents: number): string => {
   switch (totalOpponents) {
-    case 1: // 2 players total: Top center
-      return 'top-8 sm:top-10 left-1/2 -translate-x-1/2';
+    case 1: // 2 players total: Top center placed under top edge toast
+      return 'top-20 sm:top-24 left-1/2 -translate-x-1/2';
 
-    case 2: // 3 players total: Upper Left & Upper Right (completely clear of deck on right)
+    case 2: // 3 players total: Upper Left & Upper Right placed safely below toast
       return opponentIndex === 0
-        ? 'top-[22%] left-3 sm:left-6 -translate-y-1/2'
-        : 'top-[22%] right-3 sm:right-6 -translate-y-1/2';
+        ? 'top-[27%] left-3 sm:left-6 -translate-y-1/2'
+        : 'top-[27%] right-3 sm:right-6 -translate-y-1/2';
 
     case 3: // 4 players total: Mid Left, Top Center, Upper Right
-      if (opponentIndex === 0) return 'top-[34%] left-3 sm:left-5 -translate-y-1/2';
-      if (opponentIndex === 1) return 'top-8 sm:top-10 left-1/2 -translate-x-1/2';
-      return 'top-[22%] right-3 sm:right-5 -translate-y-1/2';
+      if (opponentIndex === 0) return 'top-[39%] left-3 sm:left-5 -translate-y-1/2';
+      if (opponentIndex === 1) return 'top-20 sm:top-24 left-1/2 -translate-x-1/2';
+      return 'top-[27%] right-3 sm:right-5 -translate-y-1/2';
 
     case 4: // 5 players total: Lower Left, Upper Left, Top Center, Upper Right
-      if (opponentIndex === 0) return 'top-[44%] left-2 sm:left-4 -translate-y-1/2';
-      if (opponentIndex === 1) return 'top-[18%] left-3 sm:left-5 -translate-y-1/2';
-      if (opponentIndex === 2) return 'top-8 sm:top-10 left-1/2 -translate-x-1/2';
-      return 'top-[20%] right-3 sm:right-5 -translate-y-1/2';
+      if (opponentIndex === 0) return 'top-[49%] left-2 sm:left-4 -translate-y-1/2';
+      if (opponentIndex === 1) return 'top-[26%] left-3 sm:left-5 -translate-y-1/2';
+      if (opponentIndex === 2) return 'top-20 sm:top-24 left-1/2 -translate-x-1/2';
+      return 'top-[26%] right-3 sm:right-5 -translate-y-1/2';
 
     case 5: // 6 players total: Lower Left, Upper Left, Top Center, Upper Right, Mid Right
     default:
-      if (opponentIndex === 0) return 'top-[48%] left-2 sm:left-3 -translate-y-1/2';
-      if (opponentIndex === 1) return 'top-[22%] left-3 sm:left-4 -translate-y-1/2';
-      if (opponentIndex === 2) return 'top-8 sm:top-10 left-1/2 -translate-x-1/2';
-      if (opponentIndex === 3) return 'top-[18%] right-3 sm:right-4 -translate-y-1/2';
-      return 'top-[38%] right-2 sm:right-3 -translate-y-1/2';
+      if (opponentIndex === 0) return 'top-[53%] left-2 sm:left-3 -translate-y-1/2';
+      if (opponentIndex === 1) return 'top-[27%] left-3 sm:left-4 -translate-y-1/2';
+      if (opponentIndex === 2) return 'top-20 sm:top-24 left-1/2 -translate-x-1/2';
+      if (opponentIndex === 3) return 'top-[26%] right-3 sm:right-4 -translate-y-1/2';
+      return 'top-[45%] right-2 sm:right-3 -translate-y-1/2';
   }
 };
 
@@ -85,7 +85,7 @@ export const GameTable: React.FC<GameTableProps> = ({
     <div className="relative flex-1 flex flex-col justify-between w-full max-w-md mx-auto overflow-hidden select-none">
       {/* Spectator floating banner */}
       {state.isSpectator && (
-        <div className="absolute top-3 left-1/2 -translate-x-1/2 z-30 px-3 py-1 rounded-full bg-black/80 border border-amber-400/50 backdrop-blur-md shadow-2xl flex items-center gap-2 text-white pointer-events-none whitespace-nowrap">
+        <div className="absolute top-11 sm:top-12 left-1/2 -translate-x-1/2 z-20 px-3 py-1 rounded-full bg-black/80 border border-amber-400/50 backdrop-blur-md shadow-2xl flex items-center gap-2 text-white pointer-events-none whitespace-nowrap">
           <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           <span className="text-[11px] font-bold text-amber-200">
             👁 Наблюдатель (вы сможете сыграть в следующей партии)

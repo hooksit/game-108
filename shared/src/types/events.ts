@@ -22,7 +22,7 @@ export interface ClientToServerEvents {
   'round:next': (callback?: (response: { success: boolean; error?: string }) => void) => void;
   'game:proposeRestart': (callback?: (response: { success: boolean; error?: string }) => void) => void;
   'game:voteRestart': (callback?: (response: { success: boolean; error?: string }) => void) => void;
-  'chat:send': (data: { message: string }) => void;
+  'chat:send': (data: { message: string; nickname?: string; avatar?: string }) => void;
 }
 
 export interface LobbyPlayerInfo {

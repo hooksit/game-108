@@ -174,14 +174,32 @@ export const LobbyModal: React.FC<LobbyModalProps> = ({
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md select-none">
       <div className="w-full max-w-md p-6 sm:p-8 rounded-3xl bg-[#1d1611] border border-amber-500/40 shadow-2xl flex flex-col items-center text-white">
-        {/* Brand header */}
-        <div className="text-center mb-5">
-          <h1 className="text-4xl sm:text-5xl font-extrabold tracking-wider text-amber-300 drop-shadow-md">
-            108
-          </h1>
-          <p className="text-xs uppercase tracking-widest text-amber-200/70 mt-1">
-            Карточная игра
-          </p>
+        {/* Brand header with Chat Button */}
+        <div className="flex items-center justify-between w-full mb-4 px-1">
+          <div className="w-9" />
+          <div className="text-center">
+            <h1 className="text-3xl sm:text-4xl font-extrabold tracking-wider text-amber-300 drop-shadow-md">
+              108
+            </h1>
+            <p className="text-[11px] uppercase tracking-widest text-amber-200/70 mt-0.5">
+              Карточная игра
+            </p>
+          </div>
+          {onOpenChat ? (
+            <button
+              type="button"
+              onClick={onOpenChat}
+              className="relative p-2.5 rounded-2xl bg-black/60 border border-amber-500/30 text-amber-200 hover:bg-black/80 hover:border-amber-400 transition-all shadow active:scale-95 cursor-pointer"
+              title="Чат игры"
+            >
+              <MessageSquare className="w-4 h-4 text-amber-300" />
+              {unreadChatCount > 0 && (
+                <span className="absolute -top-1.5 -right-1.5 flex items-center justify-center w-4 h-4 rounded-full bg-rose-600 text-white text-[9px] font-black shadow">
+                  {unreadChatCount}
+                </span>
+              )}
+            </button>
+          ) : <div className="w-9" />}
         </div>
 
         {/* Live Lobby Active Game Notice */}
@@ -234,7 +252,10 @@ export const LobbyModal: React.FC<LobbyModalProps> = ({
             type="text"
             value={nickname}
             maxLength={16}
-            onChange={(e) => setNickname(e.target.value)}
+            onChange={(e) => {
+              setNickname(e.target.value);
+              localStorage.setItem('player_nick', e.target.value);
+            }}
             placeholder="Введите имя..."
             className="w-full px-4 py-3 rounded-2xl bg-black/50 border border-white/10 text-white font-medium focus:outline-none focus:border-amber-400 transition-colors shadow-inner"
           />
@@ -249,9 +270,13 @@ export const LobbyModal: React.FC<LobbyModalProps> = ({
             {AVATARS.map((av) => (
               <button
                 key={av}
-                onClick={() => setSelectedAvatar(av)}
+                type="button"
+                onClick={() => {
+                  setSelectedAvatar(av);
+                  localStorage.setItem('player_avatar', av);
+                }}
                 className={`
-                  relative rounded-full overflow-hidden transition-all duration-200 aspect-square
+                  relative rounded-full overflow-hidden transition-all duration-200 aspect-square cursor-pointer
                   ${selectedAvatar === av
                     ? 'ring-3 ring-amber-400 scale-105 shadow-[0_0_12px_rgba(216,175,92,0.8)]'
                     : 'opacity-70 hover:opacity-100 hover:scale-102'
@@ -273,11 +298,23 @@ export const LobbyModal: React.FC<LobbyModalProps> = ({
           <button
             onClick={handleJoin}
             disabled={!nickname.trim()}
-            className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-600 to-amber-500 text-black font-extrabold text-base flex items-center justify-center gap-2 shadow-xl hover:brightness-110 active:scale-98 transition-all disabled:opacity-50"
+            className="w-full py-4 rounded-2xl bg-gradient-to-r from-amber-600 to-amber-500 text-black font-extrabold text-base flex items-center justify-center gap-2 shadow-xl hover:brightness-110 active:scale-98 transition-all disabled:opacity-50 cursor-pointer"
           >
             <Play className="w-5 h-5 fill-current" />
             {lobbyInfo?.phase === 'PLAYING' ? 'Смотреть игру (Наблюдатель)' : 'Присоединиться к игре'}
           </button>
+
+          {/* Lobby Entrance Chat Button */}
+          {onOpenChat && (
+            <button
+              type="button"
+              onClick={onOpenChat}
+              className="w-full mt-2.5 py-2.5 px-3 rounded-2xl bg-black/40 border border-white/10 hover:border-amber-400/50 text-amber-200 text-xs font-semibold flex items-center justify-center gap-2 transition-all active:scale-98 shadow cursor-pointer"
+            >
+              <MessageSquare className="w-3.5 h-3.5 text-amber-300" />
+              <span>Чат игры {unreadChatCount > 0 ? `(${unreadChatCount})` : ''}</span>
+            </button>
+          )}
         </div>
       </div>
     </div>
