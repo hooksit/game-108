@@ -122,7 +122,15 @@ export const PlayerHand: React.FC<PlayerHandProps> = ({
                 zIndex
               }}
             >
-              {/* "Бросить ↑" indicator badge above selected card */}
+              <CardView
+                card={card}
+                isPlayable={isPlayable}
+                isSelected={isSelected}
+                onClick={() => handleCardClick(card.id, isPlayable)}
+                size="md"
+              />
+
+              {/* "Бросить ↑" indicator badge rendered after CardView with higher z-index to stay above the card face */}
               {isSelected && (
                 <button
                   type="button"
@@ -131,21 +139,13 @@ export const PlayerHand: React.FC<PlayerHandProps> = ({
                     handleSelect(null);
                     onPlayCard(card.id);
                   }}
-                  className="absolute -top-9 left-1/2 -translate-x-1/2 px-2.5 py-0.5 rounded-full bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-black font-black text-[11px] shadow-[0_0_14px_rgba(245,158,11,0.9)] border border-amber-200 flex items-center gap-1 animate-bounce z-50 pointer-events-auto whitespace-nowrap active:scale-95 transition-transform"
+                  className="absolute -top-11 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full bg-gradient-to-r from-amber-400 via-amber-300 to-amber-500 text-black font-black text-xs shadow-[0_0_16px_rgba(245,158,11,1)] border border-amber-100 flex items-center gap-1.5 z-[70] pointer-events-auto whitespace-nowrap active:scale-95 transition-transform cursor-pointer"
                   title="Нажмите, чтобы бросить на стол"
                 >
                   <span>Бросить</span>
-                  <span className="text-xs">↑</span>
+                  <span className="text-xs font-black">↑</span>
                 </button>
               )}
-
-              <CardView
-                card={card}
-                isPlayable={isPlayable}
-                isSelected={isSelected}
-                onClick={() => handleCardClick(card.id, isPlayable)}
-                size="md"
-              />
             </div>
           );
         })}

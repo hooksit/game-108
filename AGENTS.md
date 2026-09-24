@@ -158,11 +158,16 @@ Monorepo structure with npm workspaces:
     - **Card Selection & Dynamic Fan Parting**:
       - Tapping any playable card elevates it smoothly (`translateY(-40px)`, `scale(1.05)`, bright gold glowing halo ring `z-[25]`).
       - All cards to the right of the selected card automatically shift right by `+36px` and maintain higher stacking (`zIndex: 30 + index`), guaranteeing that the suit and rank of the card to the right are **never** covered.
-      - A golden glowing action button (`Бросить ↑`) appears directly above the card with an inviting bounce.
+      - A golden glowing action button (`Бросить ↑`) is rendered after `CardView` at `-top-11` with `z-[70]`, positioned high and fully visible above the top of the card face without any clipping.
       - Tapping the card again, tapping `Бросить ↑`, or tapping anywhere on the center table discard pile immediately throws the selected card.
       - Tapping another playable card smoothly transfers the selection.
-    - **Table Centering & Space from Top Player**:
-      - Center deck and discard pile are shifted downward (`translate-y-8 sm:translate-y-10`) into the true optical center of the table felt, giving ample breathing room between the top player's seat and the center cards.
+    - **Symmetrical Table Layout & Deck Placement**:
+      - Opponents in 6-player games are distributed in a balanced arch around the oval table:
+        - Top Center: 12 o'clock (`top-[84px] sm:top-24`)
+        - Upper Sides: 10 & 2 o'clock (`top-[26%]`)
+        - Lower Sides: 8 & 4 o'clock (`top-[58%]`)
+      - Center deck sits at `top-[44%]` on the right side, nestled comfortably between the upper-right and lower-right opponents.
+      - Opponent visual card fan enlarged to `w-10.5 h-15 sm:w-12 sm:h-17`, and card count circle moved directly onto the top-right rim of the avatar (`-top-1.5 -right-2`) for tight, clean integration.
     - **Throwing onto the Table**:
       - `CardAnimationLayer.tsx` launches a high-performance GPU-accelerated flying card (`.anim-card-throw` using `translate3d`, `rotate`, `scale`).
       - Flight arc: card rises into an arc with a dynamic 3D tilt, rotations matching natural card throws, and scales seamlessly from hand into the center table.
