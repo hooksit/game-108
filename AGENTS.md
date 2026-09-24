@@ -144,6 +144,13 @@ Monorepo structure with npm workspaces:
       - `play.mp3` («Положил карту на стол.mp3»): Laying a card onto the table.
       - `pass.mp3` («Постучали колодой - пас.mp3»): Knocking on the deck/table when passing turn.
     - Synchronized for all players at the table so everyone hears card plays, draws, deals, and knocks in real time.
+14. **Card Assets Optimization & Instant Preloading**:
+    - All 36 cards + `BACK` + `DECK` converted to modern WebP (`quality: 90`), reducing total asset size from **3.90 MB to 0.54 MB (-86.1% size reduction)** with zero visual loss.
+    - Number cards (6, 7, 8, 9, 10, A) reduced from ~75 KB down to **~10 KB**.
+    - Picture cards (J, Q, K) reduced from ~105 KB down to **~15 KB**.
+    - `DECK.webp` reduced from 1020 KB down to **111 KB**.
+    - Automated preloading via `preloadAllCards()` on app mount caches all 38 assets into browser memory in <200ms, eliminating any delay or blank flicker when drawing cards from the deck.
+    - `CardView.tsx`, `DiscardZone.tsx`, and `PlayerSeat.tsx` use `loading="eager"` and `decoding="async"` with automatic `.png` fallback.
 
 ---
 

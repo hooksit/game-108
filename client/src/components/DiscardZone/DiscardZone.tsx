@@ -79,8 +79,14 @@ export const DiscardZone: React.FC<DiscardZoneProps> = ({
         >
           <div className="relative w-20 h-28 sm:w-24 sm:h-34 flex items-center justify-center">
             <img
-              src="/assets/cards/DECK.png"
+              src="/assets/cards/DECK.webp"
               alt="Колода добора"
+              loading="eager"
+              decoding="async"
+              onError={(e) => {
+                const target = e.target as HTMLImageElement;
+                if (target.src.endsWith('.webp')) target.src = target.src.replace('.webp', '.png');
+              }}
               className={`
                 w-full h-full object-contain pointer-events-none drop-shadow-xl transition-all
                 ${canDrawCard ? 'group-hover:brightness-110 drop-shadow-[0_0_15px_rgba(216,175,92,0.7)]' : ''}

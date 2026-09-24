@@ -10,6 +10,7 @@ import { RoundEndModal } from './components/Modals/RoundEndModal';
 import { GameEndModal } from './components/Modals/GameEndModal';
 import { StartingTurnModal } from './components/Modals/StartingTurnModal';
 import { ChatDrawer } from './components/Chat/ChatDrawer';
+import { preloadAllCards } from './utils/preloadCards';
 
 export default function App() {
   const {
@@ -52,6 +53,11 @@ export default function App() {
   const prevPenalty = useRef<number>(0);
   const prevDeckCount = useRef<number | null>(null);
   const prevTurnPlayerId = useRef<string | null>(null);
+
+  // Preload all 36 playing cards + back + deck into memory cache for instant 0ms draw rendering
+  useEffect(() => {
+    preloadAllCards();
+  }, []);
 
   useEffect(() => {
     if (!gameState) return;

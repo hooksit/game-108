@@ -429,6 +429,7 @@ describe('Game 108 Engine Comprehensive Test Suite', () => {
     session.currentTurnIndex = 0;
     session.discardPile = [{ id: 'SPADES_9', suit: 'SPADES', rank: '9' }];
     session.activeSuit = 'SPADES';
+    session.penalty = { type: null, amount: 0 };
     session.players[0].hand = [{ id: 'SPADES_K', suit: 'SPADES', rank: 'K' }];
 
     // p2 has 1 card worth 10 points

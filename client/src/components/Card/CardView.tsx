@@ -29,8 +29,8 @@ export const CardView: React.FC<CardViewProps> = ({
   };
 
   const imageSrc = isBack || !card
-    ? '/assets/cards/BACK.png'
-    : `/assets/cards/${card.suit}_${card.rank}.png`;
+    ? '/assets/cards/BACK.webp'
+    : `/assets/cards/${card.suit}_${card.rank}.webp`;
 
   return (
     <div
@@ -49,6 +49,14 @@ export const CardView: React.FC<CardViewProps> = ({
       <img
         src={imageSrc}
         alt={card ? `${card.rank} ${card.suit}` : 'Рубашка'}
+        loading="eager"
+        decoding="async"
+        onError={(e) => {
+          const target = e.target as HTMLImageElement;
+          if (target.src.endsWith('.webp')) {
+            target.src = target.src.replace('.webp', '.png');
+          }
+        }}
         className="w-full h-full object-fill pointer-events-none drop-shadow-sm"
         draggable={false}
       />
